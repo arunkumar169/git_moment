@@ -1,0 +1,3225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Moment of Inertia — Assignment</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b24;
+    --surface2: #1c2330;
+    --border: #2a3340;
+    --accent: #e8c96d;
+    --accent2: #7eb8f7;
+    --accent3: #f07070;
+    --accent4: #7ddbb0;
+    --text: #dce6f0;
+    --muted: #8899aa;
+    --heading: #f4ecd8;
+    --num: #e8c96d;
+    --hard: #f07070;
+    --tag-bg: #1e2d20;
+    --tag-text: #7ddbb0;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', serif;
+    font-weight: 400;
+    line-height: 1.75;
+    font-size: 15.5px;
+  }
+
+  /* ── COVER ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, #1a2540 0%, #0d1117 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 60px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 39px, #ffffff08 39px, #ffffff08 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, #ffffff08 39px, #ffffff08 40px);
+  }
+  .cover-badge {
+    background: var(--accent);
+    color: #0d1117;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .cover h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 900;
+    color: var(--heading);
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover-sub {
+    font-size: 17px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .cover-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+  }
+  .stat-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .cover-divider {
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 32px auto;
+    position: relative;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    margin: 64px 0 32px;
+    padding: 28px 32px;
+    background: var(--surface);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    position: relative;
+  }
+  .section-header.blue { border-left-color: var(--accent2); }
+  .section-header.green { border-left-color: var(--accent4); }
+  .section-header.red { border-left-color: var(--accent3); }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .section-num.blue { color: var(--accent2); }
+  .section-num.green { color: var(--accent4); }
+  .section-num.red { color: var(--accent3); }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--heading);
+    font-weight: 700;
+  }
+  .section-desc {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  /* ── QUESTION CARD ── */
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .q-card:hover { border-color: #3a4a5a; }
+  .q-card.hard { border-left: 3px solid var(--accent3); }
+  .q-card.removal { border-left: 3px solid var(--accent4); }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px 0;
+  }
+  .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    background: #1e2a18;
+    border: 1px solid #3a4a20;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .q-num.hard { color: var(--accent3); background: #2a1818; border-color: #4a2020; }
+  .q-num.blue { color: var(--accent2); background: #18202a; border-color: #20304a; }
+  .q-num.green { color: var(--accent4); background: #182a20; border-color: #204a30; }
+  .q-text {
+    flex: 1;
+    padding-bottom: 16px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .tag-hard { background: #3a1515; color: var(--accent3); }
+  .tag-pat { background: #151e3a; color: var(--accent2); }
+  .tag-ppt { background: #1a2a1a; color: var(--accent4); }
+  .tag-removal { background: #1a2a25; color: #6ee7c0; }
+  .tag-adv { background: #2a1a30; color: #c07fe8; }
+
+  /* ── FIGURE ── */
+  .fig-wrap {
+    padding: 0 24px 20px 70px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .fig-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .fig-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  /* SVG defaults */
+  svg text { font-family: 'Source Serif 4', serif; }
+
+  /* ── OPTIONS ── */
+  .options {
+    padding: 0 24px 20px 70px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  .opt {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent2);
+  }
+  .opt span { color: var(--muted); margin-right: 8px; }
+
+  /* ── FORMULA BOX ── */
+  .formula-ref {
+    background: #0d1a0d;
+    border: 1px solid #2a4a2a;
+    border-radius: 8px;
+    padding: 20px 28px;
+    margin: 32px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent4);
+  }
+  .formula-ref h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--heading);
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+  .formula-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+  }
+  .formula-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: 1px solid #1a3a1a;
+  }
+  .formula-item:last-child { border-bottom: none; }
+  .formula-lhs { color: var(--accent); min-width: 120px; }
+  .formula-rhs { color: var(--text); }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin: 48px 0;
+  }
+  .toc h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--heading);
+    margin-bottom: 16px;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 32px;
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--border);
+    font-size: 14px;
+  }
+  .toc-item a { color: var(--accent2); text-decoration: none; }
+  .toc-item a:hover { color: var(--accent); }
+  .toc-pg { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* ── THEOREM BOX ── */
+  .theorem-box {
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 22px 28px;
+    margin: 28px 0;
+    background: #12180e;
+    position: relative;
+  }
+  .theorem-box.blue { border-color: var(--accent2); background: #0e1218; }
+  .theorem-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .theorem-title.blue { color: var(--accent2); }
+  .theorem-body { font-size: 14px; line-height: 1.8; }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: white; color: black; }
+    .cover { background: white; color: black; border-bottom: 2px solid #333; }
+    .q-card { border: 1px solid #ccc; background: white; page-break-inside: avoid; }
+  }
+
+  @media (max-width: 640px) {
+    .options { grid-template-columns: 1fr; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .cover-stats { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ COVER ══════════════════ -->
+<div class="cover">
+  <div class="cover-badge">Physics Assignment</div>
+  <h1>Moment of <span>Inertia</span></h1>
+  <p class="cover-sub">Rigid Body Dynamics · Rotational Mechanics · JEE Advanced Level</p>
+  <div class="cover-divider"></div>
+  <div class="cover-stats">
+    <div class="stat"><span class="stat-num">150</span><span class="stat-label">Questions</span></div>
+    <div class="stat"><span class="stat-num">7</span><span class="stat-label">Sections</span></div>
+    <div class="stat"><span class="stat-num">20</span><span class="stat-label">Tough (JEE Adv.)</span></div>
+    <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Types</span></div>
+  </div>
+  <div class="cover-divider"></div>
+  <p style="color:var(--muted);font-size:13px;font-style:italic;position:relative;">Topics: PAT · PPT · Composite Bodies · Removal of Mass · Rolling · Angular Momentum</p>
+</div>
+
+<div class="wrapper">
+
+<!-- ── TOC ── -->
+<div class="toc">
+  <h3>📋 Table of Contents</h3>
+  <div class="toc-grid">
+    <div class="toc-item"><a href="#s1">Section 1 · Fundamentals & Basic Shapes</a><span class="toc-pg">Q1–Q25</span></div>
+    <div class="toc-item"><a href="#s2">Section 2 · Parallel Axis Theorem</a><span class="toc-pg">Q26–Q55</span></div>
+    <div class="toc-item"><a href="#s3">Section 3 · Perpendicular Axis Theorem</a><span class="toc-pg">Q56–Q80</span></div>
+    <div class="toc-item"><a href="#s4">Section 4 · Composite & Irregular Bodies</a><span class="toc-pg">Q81–Q110</span></div>
+    <div class="toc-item"><a href="#s5">Section 5 · Removal of Mass (Cavities/Holes)</a><span class="toc-pg">Q111–Q120</span></div>
+    <div class="toc-item"><a href="#s6">Section 6 · JEE Advanced Tough Problems</a><span class="toc-pg">Q121–Q140</span></div>
+    <div class="toc-item"><a href="#s7">Section 7 · Application & Mixed Problems</a><span class="toc-pg">Q141–Q150</span></div>
+  </div>
+</div>
+
+<!-- ── FORMULA REFERENCE ── -->
+<div class="formula-ref">
+  <h3>📐 Standard MOI Formulae — Quick Reference</h3>
+  <div class="formula-grid">
+    <div class="formula-item"><span class="formula-lhs">Thin Rod (CM):</span><span class="formula-rhs">I = ML²/12</span></div>
+    <div class="formula-item"><span class="formula-lhs">Thin Rod (end):</span><span class="formula-rhs">I = ML²/3</span></div>
+    <div class="formula-item"><span class="formula-lhs">Solid Disk (CM):</span><span class="formula-rhs">I = MR²/2</span></div>
+    <div class="formula-item"><span class="formula-lhs">Ring (CM):</span><span class="formula-rhs">I = MR²</span></div>
+    <div class="formula-item"><span class="formula-lhs">Solid Sphere:</span><span class="formula-rhs">I = 2MR²/5</span></div>
+    <div class="formula-item"><span class="formula-lhs">Hollow Sphere:</span><span class="formula-rhs">I = 2MR²/3</span></div>
+    <div class="formula-item"><span class="formula-lhs">Solid Cylinder:</span><span class="formula-rhs">I = MR²/2</span></div>
+    <div class="formula-item"><span class="formula-lhs">Hollow Cylinder:</span><span class="formula-rhs">I = M(R₁²+R₂²)/2</span></div>
+    <div class="formula-item"><span class="formula-lhs">Rect. Plate:</span><span class="formula-rhs">I = M(a²+b²)/12</span></div>
+    <div class="formula-item"><span class="formula-lhs">Equil. Triangle:</span><span class="formula-rhs">I = Ma²/12 (CM)</span></div>
+    <div class="formula-item"><span class="formula-lhs">Parallel Axis:</span><span class="formula-rhs">I = I_cm + Md²</span></div>
+    <div class="formula-item"><span class="formula-lhs">Perp. Axis:</span><span class="formula-rhs">I_z = I_x + I_y</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ SECTION 1 ══════════════════ -->
+<div id="s1" class="section-header">
+  <span class="section-num">Section 01 · Q1 – Q25</span>
+  <h2>Fundamentals & Basic Shapes</h2>
+  <p class="section-desc">Direct application of standard formulae · Uniform mass distributions · Single-body problems</p>
+</div>
+
+<!-- Q1 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.1</span>
+    <div class="q-text">
+      A uniform thin rod of mass <b>M = 2 kg</b> and length <b>L = 1.2 m</b> is free to rotate about an axis passing through its <b>centre of mass</b> and perpendicular to its length. Find its moment of inertia about this axis.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="280" height="70" viewBox="0 0 280 70">
+        <line x1="20" y1="35" x2="260" y2="35" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <line x1="140" y1="10" x2="140" y2="60" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <circle cx="140" cy="35" r="5" fill="#e8c96d"/>
+        <text x="140" y="8" fill="#e8c96d" font-size="10" text-anchor="middle">Axis</text>
+        <text x="80" y="25" fill="#8899aa" font-size="10" text-anchor="middle">L/2</text>
+        <text x="200" y="25" fill="#8899aa" font-size="10" text-anchor="middle">L/2</text>
+        <line x1="20" y1="48" x2="140" y2="48" stroke="#8899aa" stroke-width="1" marker-end="url(#arr)"/>
+        <line x1="260" y1="48" x2="140" y2="48" stroke="#8899aa" stroke-width="1" marker-end="url(#arr)"/>
+        <text x="140" y="62" fill="#7eb8f7" font-size="10" text-anchor="middle">L = 1.2 m, M = 2 kg</text>
+        <defs>
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#8899aa"/>
+          </marker>
+        </defs>
+      </svg>
+      <span class="fig-caption">Fig. 1.1 — Rod about CM</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>0.24 kg·m²</div>
+    <div class="opt"><span>(B)</span>0.48 kg·m²</div>
+    <div class="opt"><span>(C)</span>0.12 kg·m²</div>
+    <div class="opt"><span>(D)</span>0.96 kg·m²</div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.2</span>
+    <div class="q-text">
+      A uniform thin rod of mass <b>M</b> and length <b>L</b> rotates about an axis passing through one of its <b>ends</b> and perpendicular to its length. Express the moment of inertia and compare it with the CM axis result.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="260" height="70" viewBox="0 0 260 70">
+        <line x1="30" y1="35" x2="250" y2="35" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <line x1="30" y1="10" x2="30" y2="60" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <circle cx="30" cy="35" r="5" fill="#e8c96d"/>
+        <text x="30" y="8" fill="#e8c96d" font-size="10" text-anchor="middle">Axis</text>
+        <text x="140" y="55" fill="#8899aa" font-size="10" text-anchor="middle">← L →</text>
+        <text x="140" y="22" fill="#7eb8f7" font-size="10" text-anchor="middle">Mass M, Length L</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.2 — Rod about one end</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/12</div>
+    <div class="opt"><span>(B)</span>ML²/3</div>
+    <div class="opt"><span>(C)</span>ML²/4</div>
+    <div class="opt"><span>(D)</span>ML²/6</div>
+  </div>
+</div>
+
+<!-- Q3 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.3</span>
+    <div class="q-text">
+      A uniform <b>solid disc</b> of mass <b>M = 3 kg</b> and radius <b>R = 0.5 m</b> rotates about an axis through its centre perpendicular to its plane. Calculate the moment of inertia.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="140" height="130" viewBox="0 0 140 130">
+        <ellipse cx="70" cy="75" rx="55" ry="18" fill="#1c2d40" stroke="#7eb8f7" stroke-width="1.5"/>
+        <ellipse cx="70" cy="60" rx="55" ry="18" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="70" y1="5" x2="70" y2="115" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <circle cx="70" cy="60" r="4" fill="#e8c96d"/>
+        <line x1="70" y1="60" x2="125" y2="60" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="98" y="55" fill="#7ddbb0" font-size="11">R</text>
+        <text x="72" y="3" fill="#e8c96d" font-size="10">⊗ Axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.3 — Solid Disc</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>0.1875 kg·m²</div>
+    <div class="opt"><span>(B)</span>0.375 kg·m²</div>
+    <div class="opt"><span>(C)</span>0.75 kg·m²</div>
+    <div class="opt"><span>(D)</span>0.3 kg·m²</div>
+  </div>
+</div>
+
+<!-- Q4 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.4</span>
+    <div class="q-text">
+      A thin <b>circular ring</b> of mass <b>M = 1.5 kg</b> and radius <b>R = 0.4 m</b> lies in a horizontal plane. Find the moment of inertia about an axis through the centre and perpendicular to the plane. Also find I about a diameter.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="120" viewBox="0 0 160 120">
+        <ellipse cx="80" cy="65" rx="60" ry="20" fill="none" stroke="#7ddbb0" stroke-width="3"/>
+        <line x1="80" y1="10" x2="80" y2="110" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="20" y1="65" x2="140" y2="65" stroke="#f07070" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <circle cx="80" cy="65" r="4" fill="#e8c96d"/>
+        <text x="84" y="8" fill="#e8c96d" font-size="10">⊗ z-axis</text>
+        <text x="142" y="69" fill="#f07070" font-size="10">x (diameter)</text>
+        <text x="80" y="100" fill="#7ddbb0" font-size="10" text-anchor="middle">Ring, R = 0.4 m</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.4 — Circular Ring</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_z=0.24; I_d=0.12 kg·m²</div>
+    <div class="opt"><span>(B)</span>I_z=0.12; I_d=0.06 kg·m²</div>
+    <div class="opt"><span>(C)</span>I_z=0.48; I_d=0.24 kg·m²</div>
+    <div class="opt"><span>(D)</span>I_z=0.24; I_d=0.24 kg·m²</div>
+  </div>
+</div>
+
+<!-- Q5 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.5</span>
+    <div class="q-text">
+      A <b>solid sphere</b> of mass <b>M</b> and radius <b>R</b> rotates about an axis through its centre. Write the formula. How does it compare to a <b>hollow sphere</b> of the same mass and radius?
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle cx="65" cy="65" r="50" fill="#1a2a35" stroke="#7eb8f7" stroke-width="2"/>
+        <ellipse cx="65" cy="65" rx="50" ry="16" fill="none" stroke="#7eb8f7" stroke-width="1" stroke-dasharray="5,3"/>
+        <line x1="65" y1="10" x2="65" y2="120" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="65" y1="65" x2="115" y2="65" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="92" y="60" fill="#7ddbb0" font-size="11">R</text>
+        <text x="65" y="8" fill="#e8c96d" font-size="9" text-anchor="middle">axis</text>
+        <text x="65" y="108" fill="#7eb8f7" font-size="9" text-anchor="middle">Solid</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.5 — Solid Sphere</span>
+    </div>
+    <div class="fig-box">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle cx="65" cy="65" r="50" fill="none" stroke="#f07070" stroke-width="3"/>
+        <ellipse cx="65" cy="65" rx="50" ry="16" fill="none" stroke="#f07070" stroke-width="1" stroke-dasharray="5,3"/>
+        <line x1="65" y1="10" x2="65" y2="120" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="65" y="108" fill="#f07070" font-size="9" text-anchor="middle">Hollow</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.5b — Hollow Sphere</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2MR²/5 ; 2MR²/3</div>
+    <div class="opt"><span>(B)</span>2MR²/3 ; 2MR²/5</div>
+    <div class="opt"><span>(C)</span>MR²/2 ; MR²</div>
+    <div class="opt"><span>(D)</span>MR²/5 ; MR²/3</div>
+  </div>
+</div>
+
+<!-- Q6 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.6</span>
+    <div class="q-text">
+      A <b>solid cylinder</b> of mass <b>4 kg</b> and radius <b>0.3 m</b> rotates about its own axis. Find the moment of inertia. Compare with a <b>hollow thin-walled cylinder</b> of same M and R about the same axis.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="120" height="140" viewBox="0 0 120 140">
+        <ellipse cx="60" cy="30" rx="48" ry="16" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <rect x="12" y="30" width="96" height="80" fill="#1a2d40" stroke="none"/>
+        <ellipse cx="60" cy="110" rx="48" ry="16" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="12" y1="30" x2="12" y2="110" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="108" y1="30" x2="108" y2="110" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="60" y1="5" x2="60" y2="135" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="60" y1="30" x2="108" y2="30" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="86" y="25" fill="#7ddbb0" font-size="11">R</text>
+        <text x="60" y="3" fill="#e8c96d" font-size="9" text-anchor="middle">axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.6 — Solid Cylinder</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Solid: 0.18; Hollow: 0.36 kg·m²</div>
+    <div class="opt"><span>(B)</span>Solid: 0.36; Hollow: 0.18 kg·m²</div>
+    <div class="opt"><span>(C)</span>Solid: 0.09; Hollow: 0.18 kg·m²</div>
+    <div class="opt"><span>(D)</span>Solid: 0.18; Hollow: 0.72 kg·m²</div>
+  </div>
+</div>
+
+<!-- Q7 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.7</span>
+    <div class="q-text">
+      A <b>rectangular lamina</b> of mass <b>M = 2 kg</b>, length <b>a = 0.6 m</b>, and breadth <b>b = 0.4 m</b> lies in the x-y plane. Find I about an axis through the CM <b>parallel to side a</b>, and separately <b>parallel to side b</b>.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="220" height="130" viewBox="0 0 220 130">
+        <rect x="30" y="30" width="160" height="80" fill="#1a2540" stroke="#7eb8f7" stroke-width="2" rx="2"/>
+        <line x1="110" y1="10" x2="110" y2="120" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="10" y1="70" x2="210" y2="70" stroke="#f07070" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <circle cx="110" cy="70" r="4" fill="#e8c96d"/>
+        <text x="50" y="118" fill="#8899aa" font-size="10">← a = 0.6 m →</text>
+        <text x="8" y="50" fill="#8899aa" font-size="10">b=0.4m</text>
+        <text x="112" y="8" fill="#e8c96d" font-size="9">‖ to a</text>
+        <text x="212" y="74" fill="#f07070" font-size="9">‖ to b</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.7 — Rectangular Lamina</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Mb²/12 ; Ma²/12</div>
+    <div class="opt"><span>(B)</span>Ma²/12 ; Mb²/12</div>
+    <div class="opt"><span>(C)</span>M(a²+b²)/12 ; M(a²+b²)/12</div>
+    <div class="opt"><span>(D)</span>Mb²/6 ; Ma²/6</div>
+  </div>
+</div>
+
+<!-- Q8 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.8</span>
+    <div class="q-text">
+      Four point masses, each of mass <b>m</b>, are placed at the corners of a square of side <b>a</b>. Find the moment of inertia about an axis passing through the <b>centre of the square and perpendicular to its plane</b>.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <rect x="30" y="30" width="100" height="100" fill="none" stroke="#3a4a5a" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <circle cx="30" cy="30" r="7" fill="#7eb8f7"/>
+        <circle cx="130" cy="30" r="7" fill="#7eb8f7"/>
+        <circle cx="30" cy="130" r="7" fill="#7eb8f7"/>
+        <circle cx="130" cy="130" r="7" fill="#7eb8f7"/>
+        <circle cx="80" cy="80" r="4" fill="#e8c96d"/>
+        <line x1="80" y1="20" x2="80" y2="140" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="82" y="18" fill="#e8c96d" font-size="9">⊗ axis</text>
+        <text x="134" y="26" fill="#7eb8f7" font-size="10">m</text>
+        <text x="134" y="126" fill="#7eb8f7" font-size="10">m</text>
+        <text x="12" y="26" fill="#7eb8f7" font-size="10">m</text>
+        <text x="12" y="126" fill="#7eb8f7" font-size="10">m</text>
+        <text x="80" y="95" fill="#8899aa" font-size="10" text-anchor="middle">a</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.8 — 4 point masses</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2ma²</div>
+    <div class="opt"><span>(B)</span>4ma²</div>
+    <div class="opt"><span>(C)</span>ma²</div>
+    <div class="opt"><span>(D)</span>√2 ma²</div>
+  </div>
+</div>
+
+<!-- Q9 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.9</span>
+    <div class="q-text">
+      A uniform <b>equilateral triangular lamina</b> of side <b>a</b> and mass <b>M</b> rotates about an axis through its <b>centroid</b> and perpendicular to its plane. Find I.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="140" viewBox="0 0 160 140">
+        <polygon points="80,15 155,130 5,130" fill="#1a2a1a" stroke="#7ddbb0" stroke-width="2"/>
+        <circle cx="80" cy="91" r="5" fill="#e8c96d"/>
+        <line x1="80" y1="5" x2="80" y2="135" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="82" y="5" fill="#e8c96d" font-size="9">⊗</text>
+        <text x="80" y="107" fill="#8899aa" font-size="9" text-anchor="middle">Centroid G</text>
+        <text x="80" y="128" fill="#7ddbb0" font-size="9" text-anchor="middle">a</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.9 — Equilateral Triangle</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/12</div>
+    <div class="opt"><span>(B)</span>Ma²/6</div>
+    <div class="opt"><span>(C)</span>Ma²/24</div>
+    <div class="opt"><span>(D)</span>Ma²/4</div>
+  </div>
+</div>
+
+<!-- Q10 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.10</span>
+    <div class="q-text">
+      A <b>solid cone</b> of mass <b>M</b>, base radius <b>R</b>, and height <b>h</b> rotates about its own axis (axis of symmetry). The moment of inertia is given by which of the following?
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="130" height="150" viewBox="0 0 130 150">
+        <ellipse cx="65" cy="120" rx="50" ry="16" fill="#1c2a35" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="15" y1="120" x2="65" y2="20" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="115" y1="120" x2="65" y2="20" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="65" y1="5" x2="65" y2="145" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="67" y="4" fill="#e8c96d" font-size="9">axis</text>
+        <text x="67" y="70" fill="#8899aa" font-size="10">h</text>
+        <text x="92" y="118" fill="#7ddbb0" font-size="10">R</text>
+        <line x1="65" y1="120" x2="115" y2="120" stroke="#7ddbb0" stroke-width="1.5"/>
+      </svg>
+      <span class="fig-caption">Fig. 1.10 — Solid Cone</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/10</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>2MR²/5</div>
+    <div class="opt"><span>(D)</span>MR²/4</div>
+  </div>
+</div>
+
+<!-- Q11 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.11</span>
+    <div class="q-text">
+      Three particles of masses <b>m₁ = 1 kg</b>, <b>m₂ = 2 kg</b>, <b>m₃ = 3 kg</b> are placed at distances <b>r₁ = 1 m</b>, <b>r₂ = 2 m</b>, <b>r₃ = 3 m</b> from a fixed axis. Find the total moment of inertia about the axis.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="220" height="80" viewBox="0 0 220 80">
+        <line x1="20" y1="40" x2="200" y2="40" stroke="#3a4a5a" stroke-width="1.5"/>
+        <line x1="20" y1="30" x2="20" y2="50" stroke="#e8c96d" stroke-width="2"/>
+        <circle cx="50" cy="40" r="8" fill="#7eb8f7"/>
+        <circle cx="80" cy="40" r="10" fill="#7ddbb0"/>
+        <circle cx="125" cy="40" r="12" fill="#f07070"/>
+        <text x="50" y="44" fill="#0d1117" font-size="9" text-anchor="middle">m₁</text>
+        <text x="80" y="44" fill="#0d1117" font-size="9" text-anchor="middle">m₂</text>
+        <text x="125" y="44" fill="#0d1117" font-size="9" text-anchor="middle">m₃</text>
+        <text x="20" y="20" fill="#e8c96d" font-size="9">Axis</text>
+        <text x="35" y="68" fill="#8899aa" font-size="9">r₁=1m</text>
+        <text x="45" y="68" fill="#8899aa" font-size="9">       r₂=2m</text>
+        <text x="90" y="68" fill="#8899aa" font-size="9">        r₃=3m</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.11 — Point masses</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>36 kg·m²</div>
+    <div class="opt"><span>(B)</span>36 kg·m²</div>
+    <div class="opt"><span>(C)</span>32 kg·m²</div>
+    <div class="opt"><span>(D)</span>36 kg·m²</div>
+  </div>
+</div>
+
+<!-- Q12 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.12</span>
+    <div class="q-text">
+      A <b>thin-walled hollow cylinder</b> (like a pipe) of mass <b>M</b>, inner radius <b>R₁</b> and outer radius <b>R₂</b> rotates about its axis. Which formula gives its moment of inertia?
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(R₁²+R₂²)/2</div>
+    <div class="opt"><span>(B)</span>M(R₂²−R₁²)/2</div>
+    <div class="opt"><span>(C)</span>MR₂²/2</div>
+    <div class="opt"><span>(D)</span>M(R₁+R₂)²/4</div>
+  </div>
+</div>
+
+<!-- Q13 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.13</span>
+    <div class="q-text">
+      A uniform wire is bent into a <b>semicircle</b> of radius <b>R</b>. Find the moment of inertia about a diameter (axis through the two ends of the diameter).
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="110" viewBox="0 0 160 110">
+        <path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#7ddbb0" stroke-width="3"/>
+        <line x1="20" y1="80" x2="140" y2="80" stroke="#f07070" stroke-width="2" stroke-dasharray="5,3"/>
+        <circle cx="80" cy="80" r="4" fill="#e8c96d"/>
+        <text x="140" y="76" fill="#f07070" font-size="9">diameter axis</text>
+        <text x="80" y="40" fill="#7ddbb0" font-size="10" text-anchor="middle">R</text>
+        <line x1="80" y1="80" x2="80" y2="20" stroke="#7ddbb0" stroke-width="1" stroke-dasharray="3,2"/>
+      </svg>
+      <span class="fig-caption">Fig. 1.13 — Semicircular wire</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/2</div>
+    <div class="opt"><span>(B)</span>MR²</div>
+    <div class="opt"><span>(C)</span>MR²/4</div>
+    <div class="opt"><span>(D)</span>3MR²/4</div>
+  </div>
+</div>
+
+<!-- Q14 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.14</span>
+    <div class="q-text">
+      A <b>uniform semicircular disc</b> of mass <b>M</b> and radius <b>R</b> lies in the x-y plane with the diameter along the x-axis. Find MOI about the x-axis (the diameter).
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/4</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>MR²/8</div>
+    <div class="opt"><span>(D)</span>3MR²/8</div>
+  </div>
+</div>
+
+<!-- Q15 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.15</span>
+    <div class="q-text">
+      A <b>thin uniform disc</b> of mass <b>M</b> and radius <b>R</b> has a smaller concentric disc of radius <b>R/2</b> cut out. Find the moment of inertia of the remaining disc about the axis through the centre perpendicular to its plane. <span class="tag tag-removal">Removal</span>
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle cx="80" cy="80" r="65" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <circle cx="80" cy="80" r="32" fill="#0d1117" stroke="#f07070" stroke-width="2" stroke-dasharray="5,3"/>
+        <line x1="80" y1="10" x2="80" y2="150" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="80" y1="80" x2="145" y2="80" stroke="#7ddbb0" stroke-width="1.5"/>
+        <line x1="80" y1="80" x2="112" y2="80" stroke="#f07070" stroke-width="1.5"/>
+        <text x="118" y="76" fill="#7ddbb0" font-size="10">R</text>
+        <text x="92" y="76" fill="#f07070" font-size="9">R/2</text>
+        <text x="80" y="8" fill="#e8c96d" font-size="9" text-anchor="middle">⊗ axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.15 — Disc with hole</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>15MR²/32</div>
+    <div class="opt"><span>(B)</span>3MR²/8</div>
+    <div class="opt"><span>(C)</span>MR²/2</div>
+    <div class="opt"><span>(D)</span>7MR²/16</div>
+  </div>
+</div>
+
+<!-- Q16-25 basic continuation -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.16</span>
+    <div class="q-text">Two thin rods, each of mass <b>M</b> and length <b>L</b>, are joined at right angles at their midpoints to form a cross. Find the MOI about an axis passing through the common midpoint and perpendicular to the plane of the cross.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <line x1="10" y1="80" x2="150" y2="80" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="10" x2="80" y2="150" stroke="#7ddbb0" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="80" cy="80" r="6" fill="#e8c96d"/>
+        <text x="82" y="13" fill="#e8c96d" font-size="9">⊗ axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.16 — Cross of two rods</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/6</div>
+    <div class="opt"><span>(B)</span>ML²/12</div>
+    <div class="opt"><span>(C)</span>ML²/3</div>
+    <div class="opt"><span>(D)</span>ML²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.17</span>
+    <div class="q-text">A uniform disc of radius <b>R</b> and mass <b>M</b> has moment of inertia <b>I₁</b> about its geometric axis. A ring of the same mass and same outer radius is made. Its MOI about the axis is <b>I₂</b>. Which is correct?</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I₁ &lt; I₂</div>
+    <div class="opt"><span>(B)</span>I₁ = I₂</div>
+    <div class="opt"><span>(C)</span>I₁ &gt; I₂</div>
+    <div class="opt"><span>(D)</span>Depends on thickness</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.18</span>
+    <div class="q-text">A uniform <b>square lamina</b> of side <b>a</b> and mass <b>M</b> has MOI about an axis through its centre and perpendicular to its plane equal to ___.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <rect x="25" y="25" width="100" height="100" fill="#1a2a40" stroke="#7eb8f7" stroke-width="2"/>
+        <circle cx="75" cy="75" r="5" fill="#e8c96d"/>
+        <line x1="75" y1="10" x2="75" y2="140" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="77" y="9" fill="#e8c96d" font-size="9">⊗</text>
+        <text x="75" y="143" fill="#8899aa" font-size="10" text-anchor="middle">← a →</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.18 — Square lamina</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/6</div>
+    <div class="opt"><span>(B)</span>Ma²/12</div>
+    <div class="opt"><span>(C)</span>Ma²/3</div>
+    <div class="opt"><span>(D)</span>Ma²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.19</span>
+    <div class="q-text">A wheel of moment of inertia <b>I = 0.5 kg·m²</b> rotates at <b>ω = 20 rad/s</b>. What is its rotational kinetic energy?</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>100 J</div>
+    <div class="opt"><span>(B)</span>200 J</div>
+    <div class="opt"><span>(C)</span>50 J</div>
+    <div class="opt"><span>(D)</span>400 J</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.20</span>
+    <div class="q-text">A <b>thin uniform annular disc</b> (washer) of inner radius <b>r</b>, outer radius <b>R</b>, and mass <b>M</b> has MOI about its central axis equal to ___ .</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(R²+r²)/2</div>
+    <div class="opt"><span>(B)</span>M(R²−r²)/2</div>
+    <div class="opt"><span>(C)</span>MR²/2</div>
+    <div class="opt"><span>(D)</span>M(R+r)²/2</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.21</span>
+    <div class="q-text">A thin rod of mass <b>m</b> and length <b>l</b> makes an angle <b>θ</b> with a fixed axis. The rod is pivoted at one end and rotates about the fixed axis. Find MOI about the axis (axis is the vertical, rod is at angle θ to it).</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="130" height="150" viewBox="0 0 130 150">
+        <line x1="65" y1="10" x2="65" y2="140" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="65" y1="20" x2="115" y2="120" stroke="#7eb8f7" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 65 45 A 25 25 0 0 1 78 27" fill="none" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="82" y="38" fill="#7ddbb0" font-size="10">θ</text>
+        <text x="67" y="8" fill="#e8c96d" font-size="9">Axis</text>
+        <text x="116" y="124" fill="#7eb8f7" font-size="10">l</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.21 — Rod at angle</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ml²sin²θ/3</div>
+    <div class="opt"><span>(B)</span>ml²cos²θ/3</div>
+    <div class="opt"><span>(C)</span>ml²/3</div>
+    <div class="opt"><span>(D)</span>ml²sin²θ/12</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.22</span>
+    <div class="q-text">A <b>right circular cone</b> of mass M, base radius R is rotating about an axis through the apex and perpendicular to the cone's axis. Find its MOI. (Assume height h.)</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(h²/2 + 3R²/20)</div>
+    <div class="opt"><span>(B)</span>M(3h²/5 + 3R²/20)</div>
+    <div class="opt"><span>(C)</span>M(h² + R²)/4</div>
+    <div class="opt"><span>(D)</span>3M(h²+R²/4)/5</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.23</span>
+    <div class="q-text">A <b>thin uniform circular disc</b> of mass M and radius R is placed in the x-z plane. The y-axis passes through the centre. Find I about the y-axis (the axis in the plane of the disc through center).</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/4</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>MR²</div>
+    <div class="opt"><span>(D)</span>MR²/3</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.24</span>
+    <div class="q-text">Moment of inertia depends on (i) total mass, (ii) shape and size, (iii) distribution of mass about the axis, (iv) angular velocity. Choose the correct combination.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>(i), (ii), (iii)</div>
+    <div class="opt"><span>(B)</span>(i), (iii) only</div>
+    <div class="opt"><span>(C)</span>(i), (ii), (iii), (iv)</div>
+    <div class="opt"><span>(D)</span>(ii), (iv) only</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.25</span>
+    <div class="q-text">A <b>uniform hollow sphere</b> (shell) of mass <b>M</b> and radius <b>R</b> rotates about a tangential axis. Using the parallel axis theorem, find I about this tangential axis.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle cx="80" cy="80" r="60" fill="none" stroke="#7eb8f7" stroke-width="3"/>
+        <line x1="80" y1="10" x2="80" y2="150" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="140" y1="10" x2="140" y2="150" stroke="#f07070" stroke-width="2" stroke-dasharray="4,3"/>
+        <line x1="80" y1="80" x2="140" y2="80" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="110" y="76" fill="#7ddbb0" font-size="10">R</text>
+        <text x="82" y="8" fill="#e8c96d" font-size="9">CM axis</text>
+        <text x="142" y="8" fill="#f07070" font-size="9">Tangent</text>
+      </svg>
+      <span class="fig-caption">Fig. 1.25 — Tangential axis</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>5MR²/3</div>
+    <div class="opt"><span>(B)</span>7MR²/5</div>
+    <div class="opt"><span>(C)</span>2MR²/3 + MR²</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<!-- ══════════════════ SECTION 2 ══════════════════ -->
+<div id="s2" class="section-header blue">
+  <span class="section-num blue">Section 02 · Q26 – Q55</span>
+  <h2>Parallel Axis Theorem</h2>
+  <p class="section-desc">I = I<sub>cm</sub> + Md² · Shifting the axis of rotation by distance d from the centre of mass</p>
+</div>
+
+<div class="theorem-box blue">
+  <div class="theorem-title blue">Parallel Axis Theorem (Steiner's Theorem)</div>
+  <div class="theorem-body">
+    The moment of inertia of a body about any axis equals the moment of inertia about a parallel axis through the centre of mass, plus the product of the mass and the square of the distance between the two axes:<br>
+    <span style="font-family:'JetBrains Mono',monospace; color:var(--accent2); font-size:16px;">I = I<sub>cm</sub> + Md²</span><br>
+    Valid only when one axis passes through the CM. The two axes must be parallel.
+  </div>
+</div>
+
+<!-- Q26 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.26</span>
+    <div class="q-text">
+      A thin rod of mass <b>M = 1 kg</b> and length <b>L = 1 m</b> has its CM axis MOI = ML²/12. Using the PAT, find MOI about an axis at a distance <b>d = L/4</b> from the CM, parallel to the CM axis. <span class="tag tag-pat">PAT</span>
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="260" height="90" viewBox="0 0 260 90">
+        <line x1="20" y1="45" x2="240" y2="45" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <line x1="130" y1="15" x2="130" y2="75" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <line x1="160" y1="15" x2="160" y2="75" stroke="#7eb8f7" stroke-width="2" stroke-dasharray="5,3"/>
+        <circle cx="130" cy="45" r="5" fill="#e8c96d"/>
+        <text x="130" y="12" fill="#e8c96d" font-size="9" text-anchor="middle">CM axis</text>
+        <text x="160" y="12" fill="#7eb8f7" font-size="9" text-anchor="middle">New axis</text>
+        <line x1="130" y1="60" x2="160" y2="60" stroke="#7ddbb0" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="145" y="72" fill="#7ddbb0" font-size="9" text-anchor="middle">d = L/4</text>
+        <defs>
+          <marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#7ddbb0"/>
+          </marker>
+        </defs>
+      </svg>
+      <span class="fig-caption">Fig. 2.1 — PAT on rod</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>7ML²/48</div>
+    <div class="opt"><span>(B)</span>ML²/12</div>
+    <div class="opt"><span>(C)</span>ML²/6</div>
+    <div class="opt"><span>(D)</span>5ML²/48</div>
+  </div>
+</div>
+
+<!-- Q27 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.27</span>
+    <div class="q-text">Using the PAT, derive the MOI of a thin rod about an axis through one end. Verify it gives ML²/3. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/12 + ML²/4 = ML²/3</div>
+    <div class="opt"><span>(B)</span>ML²/12 + ML²/2 = 7ML²/12</div>
+    <div class="opt"><span>(C)</span>ML²/6 + ML²/4 = 5ML²/12</div>
+    <div class="opt"><span>(D)</span>ML²/12 − ML²/4 = −ML²/6</div>
+  </div>
+</div>
+
+<!-- Q28 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.28</span>
+    <div class="q-text">
+      A solid disc of mass <b>M</b> and radius <b>R</b> has MOI about its centre = MR²/2. Find MOI about a <b>tangential axis in the plane of the disc</b>. <span class="tag tag-pat">PAT</span>
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="170" height="160" viewBox="0 0 170 160">
+        <ellipse cx="80" cy="80" rx="65" ry="20" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="15" y1="80" x2="145" y2="80" stroke="#7eb8f7" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="145" y1="30" x2="145" y2="130" stroke="#f07070" stroke-width="2" stroke-dasharray="4,3"/>
+        <text x="147" y="26" fill="#f07070" font-size="9">Tangent axis</text>
+        <line x1="80" y1="80" x2="145" y2="80" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="112" y="74" fill="#7ddbb0" font-size="9">R</text>
+      </svg>
+      <span class="fig-caption">Fig. 2.3 — Tangential axis (in-plane)</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/2</div>
+    <div class="opt"><span>(B)</span>5MR²/4</div>
+    <div class="opt"><span>(C)</span>MR²</div>
+    <div class="opt"><span>(D)</span>3MR²/4</div>
+  </div>
+</div>
+
+<!-- Q29 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.29</span>
+    <div class="q-text">A solid sphere of mass <b>M</b> and radius <b>R</b> has I_cm = 2MR²/5. Find the MOI about a <b>tangential axis</b>. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>7MR²/5</div>
+    <div class="opt"><span>(B)</span>2MR²/5</div>
+    <div class="opt"><span>(C)</span>5MR²/5</div>
+    <div class="opt"><span>(D)</span>12MR²/5</div>
+  </div>
+</div>
+
+<!-- Q30 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.30</span>
+    <div class="q-text">
+      A ring of mass <b>M</b> and radius <b>R</b>. Find MOI about an axis tangent to the ring and lying <b>in its plane</b>. <span class="tag tag-pat">PAT</span>
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="180" height="140" viewBox="0 0 180 140">
+        <ellipse cx="80" cy="75" rx="60" ry="20" fill="none" stroke="#7ddbb0" stroke-width="3"/>
+        <line x1="20" y1="75" x2="140" y2="75" stroke="#7ddbb0" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="140" y1="30" x2="140" y2="120" stroke="#f07070" stroke-width="2" stroke-dasharray="4,3"/>
+        <text x="142" y="26" fill="#f07070" font-size="9">Tangent</text>
+        <line x1="80" y1="75" x2="140" y2="75" stroke="#e8c96d" stroke-width="1.5"/>
+        <text x="110" y="70" fill="#e8c96d" font-size="9">R</text>
+      </svg>
+      <span class="fig-caption">Fig. 2.5 — Ring tangent in-plane</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/2</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>2MR²</div>
+    <div class="opt"><span>(D)</span>MR²</div>
+  </div>
+</div>
+
+<!-- Q31 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.31</span>
+    <div class="q-text">
+      A rectangular plate (mass M, sides a and b) has I_cm about an axis parallel to side b through the CM = Ma²/12. Using PAT, find I about the edge parallel to side b. <span class="tag tag-pat">PAT</span>
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="230" height="120" viewBox="0 0 230 120">
+        <rect x="20" y="25" width="160" height="80" fill="#1a2540" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="100" y1="10" x2="100" y2="110" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="20" y1="10" x2="20" y2="110" stroke="#f07070" stroke-width="2" stroke-dasharray="4,3"/>
+        <line x1="20" y1="90" x2="100" y2="90" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="60" y="86" fill="#7ddbb0" font-size="9" text-anchor="middle">a/2</text>
+        <text x="95" y="8" fill="#e8c96d" font-size="9" text-anchor="middle">CM axis</text>
+        <text x="10" y="8" fill="#f07070" font-size="9">Edge axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 2.6 — Rect. plate PAT</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/3</div>
+    <div class="opt"><span>(B)</span>Ma²/4</div>
+    <div class="opt"><span>(C)</span>Ma²/6</div>
+    <div class="opt"><span>(D)</span>Ma²/12</div>
+  </div>
+</div>
+
+<!-- Q32-55 continued -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.32</span>
+    <div class="q-text">A solid cylinder (mass M, radius R, length L) rotates about an axis through one end perpendicular to its length. Find I using PAT. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(L²/3 + R²/4)</div>
+    <div class="opt"><span>(B)</span>M(L²/12 + R²/4)</div>
+    <div class="opt"><span>(C)</span>M(L²/3 + R²/2)</div>
+    <div class="opt"><span>(D)</span>M(L²/4 + R²/4)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.33</span>
+    <div class="q-text">A thin rod of mass M and length 2a is bent at the midpoint into an L-shape (two arms of equal length a at 90°). Find MOI about an axis through the junction point perpendicular to the plane of the L. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <line x1="30" y1="30" x2="120" y2="30" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <line x1="30" y1="30" x2="30" y2="120" stroke="#7ddbb0" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="30" cy="30" r="6" fill="#e8c96d"/>
+        <text x="34" y="26" fill="#e8c96d" font-size="9">⊗ Axis</text>
+        <text x="75" y="22" fill="#7eb8f7" font-size="10">a</text>
+        <text x="15" y="75" fill="#7ddbb0" font-size="10">a</text>
+      </svg>
+      <span class="fig-caption">Fig. 2.8 — L-shaped rod</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/3</div>
+    <div class="opt"><span>(B)</span>2Ma²/3</div>
+    <div class="opt"><span>(C)</span>Ma²/6</div>
+    <div class="opt"><span>(D)</span>Ma²/2</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.34</span>
+    <div class="q-text">The radius of gyration of a solid sphere about a tangential axis is ___. (Use PAT and I_cm = 2MR²/5) <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>R√(7/5)</div>
+    <div class="opt"><span>(B)</span>R√(2/5)</div>
+    <div class="opt"><span>(C)</span>R√(7/3)</div>
+    <div class="opt"><span>(D)</span>R√(5/7)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.35</span>
+    <div class="q-text">A solid disc of mass M and radius R has an axis passing through a point on its rim perpendicular to the plane. Find MOI. Compare with the axis through centre. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/2</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>5MR²/2</div>
+    <div class="opt"><span>(D)</span>2MR²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.36</span>
+    <div class="q-text">A thin ring of radius R and mass M is rotating about an axis through its <b>diameter</b>. A parallel axis at distance R is used. Find I about the new axis. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/2</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>5MR²/2</div>
+    <div class="opt"><span>(D)</span>MR²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.37</span>
+    <div class="q-text">The moment of inertia of a uniform semicircular disc of mass M and radius R about an axis through the centre of the diameter and perpendicular to the plane is ___. Then using PAT find I about an axis along the flat edge (diameter). <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/2 ; then use PPT</div>
+    <div class="opt"><span>(B)</span>MR²/4 + MR²</div>
+    <div class="opt"><span>(C)</span>MR²/4 ; then MR²/8</div>
+    <div class="opt"><span>(D)</span>3MR²/8</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.38</span>
+    <div class="q-text">Six equal point masses <b>m</b> are placed at the vertices of a regular hexagon of side <b>a</b>. Find MOI about an axis through the centre perpendicular to the plane. Then apply PAT to find I about an axis through one vertex perpendicular to the plane. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <polygon points="80,18 138,50 138,110 80,142 22,110 22,50" fill="none" stroke="#3a4a5a" stroke-width="1.5"/>
+        <circle cx="80" cy="18" r="7" fill="#7eb8f7"/>
+        <circle cx="138" cy="50" r="7" fill="#7eb8f7"/>
+        <circle cx="138" cy="110" r="7" fill="#7eb8f7"/>
+        <circle cx="80" cy="142" r="7" fill="#7eb8f7"/>
+        <circle cx="22" cy="110" r="7" fill="#7eb8f7"/>
+        <circle cx="22" cy="50" r="7" fill="#7eb8f7"/>
+        <circle cx="80" cy="80" r="5" fill="#e8c96d"/>
+        <text x="82" y="78" fill="#e8c96d" font-size="8">⊗</text>
+        <line x1="80" y1="80" x2="80" y2="18" stroke="#8899aa" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="90" y="50" fill="#8899aa" font-size="9">a</text>
+      </svg>
+      <span class="fig-caption">Fig. 2.13 — Regular hexagon</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>6ma² ; then 9ma²</div>
+    <div class="opt"><span>(B)</span>6ma² ; then 12ma²</div>
+    <div class="opt"><span>(C)</span>3ma² ; then 6ma²</div>
+    <div class="opt"><span>(D)</span>6ma² ; then 8ma²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.39</span>
+    <div class="q-text">A square frame of side L is made of 4 uniform rods each of mass m. Find MOI about an axis through the centre of one side and perpendicular to the plane. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <rect x="20" y="20" width="120" height="120" fill="none" stroke="#7eb8f7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="80" cy="20" r="5" fill="#e8c96d"/>
+        <line x1="80" y1="5" x2="80" y2="155" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="82" y="4" fill="#e8c96d" font-size="9">⊗ axis</text>
+        <text x="72" y="155" fill="#8899aa" font-size="8">midpoint of top side</text>
+      </svg>
+      <span class="fig-caption">Fig. 2.14 — Square frame</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>mL²(5/3)</div>
+    <div class="opt"><span>(B)</span>mL²(2/3)</div>
+    <div class="opt"><span>(C)</span>mL²(7/6)</div>
+    <div class="opt"><span>(D)</span>mL²(4/3)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.40</span>
+    <div class="q-text">A solid cone (base radius R, mass M) has I about its own axis = 3MR²/10. Using PAT, find I about a parallel axis through the rim of the base. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/10 + MR² = 13MR²/10</div>
+    <div class="opt"><span>(B)</span>3MR²/10 + MR²/2</div>
+    <div class="opt"><span>(C)</span>3MR²/5</div>
+    <div class="opt"><span>(D)</span>MR²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.41</span>
+    <div class="q-text">A thin rod of mass m is bent into a <b>square</b> of side a. Find the MOI of the square about an axis through the midpoint of one side and perpendicular to the plane. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ma²(4/3)/4</div>
+    <div class="opt"><span>(B)</span>7ma²/24</div>
+    <div class="opt"><span>(C)</span>11ma²/12</div>
+    <div class="opt"><span>(D)</span>5ma²/12</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.42</span>
+    <div class="q-text">An object's MOI about an axis through its CM is 3 kg·m². If its mass is 6 kg and a parallel axis is at distance 0.5 m, what is the MOI about the new axis? <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>4.5 kg·m²</div>
+    <div class="opt"><span>(B)</span>3 kg·m²</div>
+    <div class="opt"><span>(C)</span>6 kg·m²</div>
+    <div class="opt"><span>(D)</span>3.75 kg·m²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.43</span>
+    <div class="q-text">A thin disc of mass M and radius R is attached at its edge to the end of a thin rod of the same mass M and length R. Find the MOI of the system about the free end of the rod (axis through free end, perpendicular to rod). <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(4R²/3 + 5R²/4)</div>
+    <div class="opt"><span>(B)</span>MR²/3 + 3MR²/2</div>
+    <div class="opt"><span>(C)</span>M(R²/3 + R²/4 + 4R²) </div>
+    <div class="opt"><span>(D)</span>MR²(4/3 + 3/4)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.44</span>
+    <div class="q-text">The MOI of a body about an axis A is 3 times its MOI about a parallel CM axis. The mass is m and the distance between axes is d. Find d in terms of the CM-axis MOI (I₀). <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>d = √(2I₀/m)</div>
+    <div class="opt"><span>(B)</span>d = √(3I₀/m)</div>
+    <div class="opt"><span>(C)</span>d = √(I₀/m)</div>
+    <div class="opt"><span>(D)</span>d = √(4I₀/m)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.45</span>
+    <div class="q-text">A circular hoop of mass M, radius R is suspended from a point on its rim. It oscillates as a physical pendulum. What is the effective MOI about the pivot? What is the time period? (g = 10 m/s²) <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I = 2MR² ; T = 2π√(2R/g)</div>
+    <div class="opt"><span>(B)</span>I = MR² ; T = 2π√(R/g)</div>
+    <div class="opt"><span>(C)</span>I = 3MR²/2 ; T = 2π√(3R/2g)</div>
+    <div class="opt"><span>(D)</span>I = MR²/2 ; T = 2π√(R/2g)</div>
+  </div>
+</div>
+
+<!-- Q46-55 more PAT -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.46</span>
+    <div class="q-text">A uniform solid sphere of radius R and mass M has an axis at distance 2R from its centre (parallel to a diameter). Find I. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2MR²/5 + 4MR² = 22MR²/5</div>
+    <div class="opt"><span>(B)</span>2MR²/5 + 2MR²</div>
+    <div class="opt"><span>(C)</span>7MR²/5 + 4MR²</div>
+    <div class="opt"><span>(D)</span>2MR²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.47</span>
+    <div class="q-text">The moment of inertia of a thin rod of mass M and length L about an axis perpendicular to the rod at a distance L/3 from one end is ___. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>7ML²/36</div>
+    <div class="opt"><span>(B)</span>ML²/9</div>
+    <div class="opt"><span>(C)</span>ML²/12</div>
+    <div class="opt"><span>(D)</span>ML²/36</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.48</span>
+    <div class="q-text">Two identical discs (mass m, radius R each) are placed coaxially. One disc is at the origin and the other at distance d. Find MOI about the common axis. Now find MOI about an axis perpendicular to the common axis through the midpoint of the segment joining the centres. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>mR² ; m(R²/4 + d²/2)</div>
+    <div class="opt"><span>(B)</span>mR² ; m(R²/2 + d²)</div>
+    <div class="opt"><span>(C)</span>mR²/2 + mR²/2 ; m(R²+d²)/2</div>
+    <div class="opt"><span>(D)</span>mR² ; m(R²/2 + d²/2)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.49</span>
+    <div class="q-text">The radius of gyration of a disc about a tangent parallel to its diameter is ___. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>R√(5/4)</div>
+    <div class="opt"><span>(B)</span>R√(3/4)</div>
+    <div class="opt"><span>(C)</span>R√(3/2)</div>
+    <div class="opt"><span>(D)</span>R/√2</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.50</span>
+    <div class="q-text">Five equal rods, each of mass m and length L, are arranged to form a pentagon. Find the MOI about an axis through the centre of the pentagon perpendicular to its plane. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>5mL²(1/12 + sin²54°)</div>
+    <div class="opt"><span>(B)</span>5mL²/12</div>
+    <div class="opt"><span>(C)</span>5mL²(1/12 + R²_pentagon/L²)</div>
+    <div class="opt"><span>(D)</span>5mL²/3</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.51</span>
+    <div class="q-text">A solid cylinder of mass M, radius R, and length L has I about the axis of symmetry = MR²/2. Find I about an axis perpendicular to the cylinder's axis through the midpoint of the cylinder using combined results. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(L²/12 + R²/4)</div>
+    <div class="opt"><span>(B)</span>M(L²/3 + R²/2)</div>
+    <div class="opt"><span>(C)</span>M(L²/12 + R²/2)</div>
+    <div class="opt"><span>(D)</span>M(L²/6 + R²/4)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.52</span>
+    <div class="q-text">A uniform circular ring of mass 2 kg and radius 0.5 m has its MOI about its axis = 0.5 kg·m². A particle of mass 0.1 kg is placed at a point on the ring. Find the new MOI about the axis. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>0.525 kg·m²</div>
+    <div class="opt"><span>(B)</span>0.5 kg·m²</div>
+    <div class="opt"><span>(C)</span>0.55 kg·m²</div>
+    <div class="opt"><span>(D)</span>0.52 kg·m²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.53</span>
+    <div class="q-text">A disc of mass M and radius R is mounted at its edge on a horizontal axis. If released from horizontal position, using I (about edge axis) find angular velocity when it passes through the lowest point. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>√(4g/3R)</div>
+    <div class="opt"><span>(B)</span>√(2g/R)</div>
+    <div class="opt"><span>(C)</span>√(4g/R)</div>
+    <div class="opt"><span>(D)</span>√(8g/3R)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.54</span>
+    <div class="q-text">A thin spherical shell of mass M, radius R has MOI = 2MR²/3 about diameter. Find its MOI about a tangential axis using PAT. <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>5MR²/3</div>
+    <div class="opt"><span>(B)</span>2MR²/3</div>
+    <div class="opt"><span>(C)</span>4MR²/3</div>
+    <div class="opt"><span>(D)</span>MR²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num blue">Q.55</span>
+    <div class="q-text">If the MOI of a disc about a tangent in its plane is (5/4)MR², verify this using both the PAT and PPT in combination. Show full working. What is the radius of gyration? <span class="tag tag-pat">PAT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>k = R√(5/4)</div>
+    <div class="opt"><span>(B)</span>k = R√(5/2)</div>
+    <div class="opt"><span>(C)</span>k = R√(3/4)</div>
+    <div class="opt"><span>(D)</span>k = 5R/4</div>
+  </div>
+</div>
+
+<!-- ══════════════════ SECTION 3 ══════════════════ -->
+<div id="s3" class="section-header green">
+  <span class="section-num green">Section 03 · Q56 – Q80</span>
+  <h2>Perpendicular Axis Theorem</h2>
+  <p class="section-desc">I<sub>z</sub> = I<sub>x</sub> + I<sub>y</sub> · Valid for planar laminas · Relates out-of-plane to in-plane MOI</p>
+</div>
+
+<div class="theorem-box">
+  <div class="theorem-title">Perpendicular Axis Theorem</div>
+  <div class="theorem-body">
+    For a <b>planar lamina</b> lying in the x-y plane, the moment of inertia about the z-axis (perpendicular to the plane) equals the sum of the MOI about any two mutually perpendicular axes in the plane through the same point:<br>
+    <span style="font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:16px;">I<sub>z</sub> = I<sub>x</sub> + I<sub>y</sub></span><br>
+    <b>Note:</b> This theorem applies ONLY to 2D laminas (flat, planar objects). It does NOT apply to 3D solids.
+  </div>
+</div>
+
+<!-- Q56 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.56</span>
+    <div class="q-text">
+      A uniform disc of mass M and radius R lies in the x-y plane. I about the z-axis = MR²/2. Using PPT, find the MOI about the x-axis (a diameter). <span class="tag tag-ppt">PPT</span>
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="180" height="160" viewBox="0 0 180 160">
+        <ellipse cx="90" cy="85" rx="70" ry="22" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="20" y1="85" x2="160" y2="85" stroke="#f07070" stroke-width="2" stroke-dasharray="5,3"/>
+        <line x1="90" y1="20" x2="90" y2="150" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <line x1="90" y1="85" x2="90" y2="20" stroke="#7ddbb0" stroke-width="2" stroke-dasharray="4,3"/>
+        <text x="162" y="89" fill="#f07070" font-size="10">x</text>
+        <text x="92" y="18" fill="#7ddbb0" font-size="10">y</text>
+        <text x="92" y="135" fill="#e8c96d" font-size="9">z (⊗)</text>
+        <text x="90" y="74" fill="#7eb8f7" font-size="9" text-anchor="middle">Disc</text>
+      </svg>
+      <span class="fig-caption">Fig. 3.1 — Disc & PPT axes</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/4</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>MR²/8</div>
+    <div class="opt"><span>(D)</span>MR²</div>
+  </div>
+</div>
+
+<!-- Q57 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.57</span>
+    <div class="q-text">A thin ring of mass M and radius R lies in the x-y plane. I_z = MR². Using PPT, find I about a diameter. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/2</div>
+    <div class="opt"><span>(B)</span>MR²</div>
+    <div class="opt"><span>(C)</span>MR²/4</div>
+    <div class="opt"><span>(D)</span>2MR²</div>
+  </div>
+</div>
+
+<!-- Q58 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.58</span>
+    <div class="q-text">A rectangular lamina of mass M, sides a and b lies in the x-y plane (a along x, b along y). Find I_z using PPT and verify. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(a²+b²)/12</div>
+    <div class="opt"><span>(B)</span>M(a²+b²)/6</div>
+    <div class="opt"><span>(C)</span>M(a²+b²)/3</div>
+    <div class="opt"><span>(D)</span>M(a²+b²)/4</div>
+  </div>
+</div>
+
+<!-- Q59 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.59</span>
+    <div class="q-text">A square plate of side a and mass M lies in the x-y plane. The four sides are parallel to the axes. Find I_x, I_y and hence I_z using PPT. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/12, Ma²/12, Ma²/6</div>
+    <div class="opt"><span>(B)</span>Ma²/6, Ma²/6, Ma²/3</div>
+    <div class="opt"><span>(C)</span>Ma²/4, Ma²/4, Ma²/2</div>
+    <div class="opt"><span>(D)</span>Ma²/3, Ma²/3, 2Ma²/3</div>
+  </div>
+</div>
+
+<!-- Q60 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.60</span>
+    <div class="q-text">A thin triangular lamina (right triangle, legs a and b, mass M) lies in x-y plane. Use PPT to find I about the hypotenuse. Given I about leg-a = Mb²/6, I about leg-b = Ma²/6. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="170" height="130" viewBox="0 0 170 130">
+        <polygon points="20,110 140,110 20,20" fill="#1a2a1a" stroke="#7ddbb0" stroke-width="2"/>
+        <line x1="20" y1="110" x2="140" y2="110" stroke="#f07070" stroke-width="2" stroke-dasharray="4,3"/>
+        <line x1="20" y1="110" x2="20" y2="20" stroke="#7eb8f7" stroke-width="2" stroke-dasharray="4,3"/>
+        <line x1="20" y1="20" x2="140" y2="110" stroke="#e8c96d" stroke-width="2"/>
+        <text x="80" y="125" fill="#f07070" font-size="10">a (base)</text>
+        <text x="2" y="70" fill="#7eb8f7" font-size="10">b</text>
+        <text x="75" y="60" fill="#e8c96d" font-size="10">hyp.</text>
+      </svg>
+      <span class="fig-caption">Fig. 3.5 — Right triangle lamina</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M·a²b²/[6(a²+b²)]</div>
+    <div class="opt"><span>(B)</span>M(a²+b²)/6</div>
+    <div class="opt"><span>(C)</span>Ma²b²/(3(a²+b²))</div>
+    <div class="opt"><span>(D)</span>M(a+b)²/12</div>
+  </div>
+</div>
+
+<!-- Q61-80 PPT continued -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.61</span>
+    <div class="q-text">An elliptical lamina of mass M, semi-axes a and b has I about the major axis = Mb²/4 and I about minor axis = Ma²/4. Find I about the axis perpendicular to the lamina through its centre. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(a²+b²)/4</div>
+    <div class="opt"><span>(B)</span>M(a²+b²)/2</div>
+    <div class="opt"><span>(C)</span>Mab/4</div>
+    <div class="opt"><span>(D)</span>M(a+b)²/8</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.62</span>
+    <div class="q-text">PPT is applicable to: (A) A solid sphere, (B) A thin uniform disc, (C) A solid cylinder, (D) A hollow cylinder. Choose the correct option. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Only (B)</div>
+    <div class="opt"><span>(B)</span>(A) and (C)</div>
+    <div class="opt"><span>(C)</span>(B) and (D) if hollow</div>
+    <div class="opt"><span>(D)</span>All of the above</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.63</span>
+    <div class="q-text">A thin uniform rod of mass M and length L lies along the x-axis. Find I about the z-axis through CM using PPT. (Note: I_y = ML²/12 for rotation about y through CM, I_x = 0 since mass is distributed along x.) <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/12</div>
+    <div class="opt"><span>(B)</span>ML²/6</div>
+    <div class="opt"><span>(C)</span>ML²/3</div>
+    <div class="opt"><span>(D)</span>0</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.64</span>
+    <div class="q-text">A thin semicircular disc of mass M and radius R. Find MOI about the diameter (axis along the flat edge) using the PPT approach. Given I_z = MR²/2. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/4</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>MR²/8</div>
+    <div class="opt"><span>(D)</span>3MR²/8</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.65</span>
+    <div class="q-text">A quarter disc of mass M and radius R has I about one straight edge = MR²/4. Find I about the axis perpendicular to the plane through the corner. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <path d="M 20 120 A 100 100 0 0 1 120 20 L 20 20 Z" fill="#1a2a35" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="20" y1="10" x2="20" y2="130" stroke="#f07070" stroke-width="2" stroke-dasharray="4,3"/>
+        <line x1="10" y1="20" x2="130" y2="20" stroke="#7ddbb0" stroke-width="2" stroke-dasharray="4,3"/>
+        <circle cx="20" cy="20" r="5" fill="#e8c96d"/>
+        <text x="22" y="16" fill="#e8c96d" font-size="9">⊗ axis</text>
+        <text x="22" y="135" fill="#f07070" font-size="9">y-axis</text>
+        <text x="132" y="24" fill="#7ddbb0" font-size="9">x-axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 3.10 — Quarter disc</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/2</div>
+    <div class="opt"><span>(B)</span>MR²/4</div>
+    <div class="opt"><span>(C)</span>MR²</div>
+    <div class="opt"><span>(D)</span>3MR²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.66</span>
+    <div class="q-text">A uniform circular disc of mass M and radius R. I about diameter = MR²/4. Using PPT, verify I about the central perpendicular axis = MR²/2. If I_x ≠ I_y for a non-symmetric lamina, explain how PPT still holds. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>PPT holds as I_z = I_x + I_y regardless</div>
+    <div class="opt"><span>(B)</span>PPT fails if I_x ≠ I_y</div>
+    <div class="opt"><span>(C)</span>PPT only works for symmetric shapes</div>
+    <div class="opt"><span>(D)</span>We must average I_x and I_y for I_z</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.67</span>
+    <div class="q-text">A thin triangular lamina of base <b>2a</b> and height <b>h</b>, mass M, lies in x-y plane. The base is along x-axis and the apex is on the y-axis at height h. Using PPT, find I_z (through the centroid, perpendicular to the plane). <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(a²+h²)/6</div>
+    <div class="opt"><span>(B)</span>M(a²+h²)/12</div>
+    <div class="opt"><span>(C)</span>M(4a²+3h²)/18</div>
+    <div class="opt"><span>(D)</span>M(a²/2 + h²/3)</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.68</span>
+    <div class="q-text">A ring and a disc of same mass M and same radius R. Compare I about a diameter for ring vs disc using PPT. Which is larger? <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ring: MR²/2 > Disc: MR²/4</div>
+    <div class="opt"><span>(B)</span>Disc: MR²/4 > Ring: MR²/2</div>
+    <div class="opt"><span>(C)</span>Both equal MR²/2</div>
+    <div class="opt"><span>(D)</span>Ring: MR²/4 < Disc: MR²/2</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.69</span>
+    <div class="q-text">A thin uniform square lamina of side a and mass M lies in xy-plane. Using PPT, I_z = Ma²/6. Now rotate the square 45° about the z-axis. Does I_z change? Does I_x change? Explain. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_z unchanged; I_x changes to Ma²/12</div>
+    <div class="opt"><span>(B)</span>Both I_z and I_x unchanged</div>
+    <div class="opt"><span>(C)</span>I_z unchanged; I_x changes to Ma²/6</div>
+    <div class="opt"><span>(D)</span>I_z changes; I_x unchanged</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.70</span>
+    <div class="q-text">A circular disc of radius R is cut into quarters. For one quarter disc of mass M, use PPT to show that I about the axis through the corner (perpendicular to quarter disc) = MR²/2. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_x + I_y = MR²/4 + MR²/4 = MR²/2 ✓</div>
+    <div class="opt"><span>(B)</span>I_x + I_y = MR²/2 + MR²/2 = MR²</div>
+    <div class="opt"><span>(C)</span>I_z = MR²/4</div>
+    <div class="opt"><span>(D)</span>PPT not applicable here</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.71</span>
+    <div class="q-text">For a uniform disc, the MOI about any axis through centre in the plane of the disc = MR²/4. Using PPT, argue why all in-plane axes through the centre must give the same MOI for a disc. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Due to circular symmetry, I_x = I_y for any pair of perpendicular diameters</div>
+    <div class="opt"><span>(B)</span>PPT proves I_x = I_y always</div>
+    <div class="opt"><span>(C)</span>Not always true; depends on diameter direction</div>
+    <div class="opt"><span>(D)</span>I_x = I_y only when mass distribution is symmetric</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.72</span>
+    <div class="q-text">I about the z-axis (perp. to plane) of a thin triangular lamina (equilateral, side a, mass M) through the centroid is Ma²/12. Using PPT, find I about a median axis in the plane. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/24</div>
+    <div class="opt"><span>(B)</span>Ma²/12</div>
+    <div class="opt"><span>(C)</span>Ma²/6</div>
+    <div class="opt"><span>(D)</span>Ma²/8</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.73</span>
+    <div class="q-text">A thin annular disc (inner r, outer R, mass M) lies in x-y plane. I_z about center = M(R²+r²)/2. Using PPT, find I about any diameter. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(R²+r²)/4</div>
+    <div class="opt"><span>(B)</span>M(R²+r²)/2</div>
+    <div class="opt"><span>(C)</span>M(R²−r²)/4</div>
+    <div class="opt"><span>(D)</span>M(R²+r²)/8</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.74</span>
+    <div class="q-text">A rectangular lamina has I_x = 3 kg·m² and I_y = 5 kg·m² about axes through its CM. Find I_z using PPT. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>8 kg·m²</div>
+    <div class="opt"><span>(B)</span>15 kg·m²</div>
+    <div class="opt"><span>(C)</span>2 kg·m²</div>
+    <div class="opt"><span>(D)</span>4 kg·m²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.75</span>
+    <div class="q-text">A uniform disc of mass 500 g and radius 20 cm has I about a diameter = 0.001 kg·m². Using PPT, find I_z (about axis perpendicular to disc through centre). <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>0.002 kg·m²</div>
+    <div class="opt"><span>(B)</span>0.001 kg·m²</div>
+    <div class="opt"><span>(C)</span>0.004 kg·m²</div>
+    <div class="opt"><span>(D)</span>0.0005 kg·m²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.76</span>
+    <div class="q-text">A lamina has I_z = 10 kg·m² about the z-axis. If I_x = 4 kg·m², find I_y using PPT. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>6 kg·m²</div>
+    <div class="opt"><span>(B)</span>14 kg·m²</div>
+    <div class="opt"><span>(C)</span>40 kg·m²</div>
+    <div class="opt"><span>(D)</span>2.5 kg·m²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.77</span>
+    <div class="q-text">Explain why PPT cannot be applied to a solid sphere. What condition does the body need to satisfy? Give an example where the theorem is misapplied and leads to wrong results. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Body must be 2D/planar; solid sphere is 3D</div>
+    <div class="opt"><span>(B)</span>PPT applies to symmetric bodies only</div>
+    <div class="opt"><span>(C)</span>PPT requires equal axes; sphere has three equal I</div>
+    <div class="opt"><span>(D)</span>PPT is universal; sphere is an exception to the rule</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.78</span>
+    <div class="q-text">A thin uniform lamina in the shape of a regular hexagon (side a, mass M) lies in the x-y plane. Find I_z about the central perpendicular axis using PPT and the result I_x = I_y = 5Ma²/16. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>5Ma²/8</div>
+    <div class="opt"><span>(B)</span>5Ma²/4</div>
+    <div class="opt"><span>(C)</span>5Ma²/16</div>
+    <div class="opt"><span>(D)</span>Ma²/2</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.79</span>
+    <div class="q-text">A semi-circular wire (not disc) of mass M and radius R lies in x-y plane. I about x-axis (diameter) = MR²/2. Find I about the axis through the midpoint of the diameter perpendicular to the plane (z-axis). <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²</div>
+    <div class="opt"><span>(B)</span>MR²/2</div>
+    <div class="opt"><span>(C)</span>3MR²/2</div>
+    <div class="opt"><span>(D)</span>MR²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num green">Q.80</span>
+    <div class="q-text">A quarter circular wire of mass M and radius R has I about one straight edge = MR². Find I about the axis perpendicular to the plane through the corner using PPT. <span class="tag tag-ppt">PPT</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2MR²</div>
+    <div class="opt"><span>(B)</span>MR²</div>
+    <div class="opt"><span>(C)</span>MR²/2</div>
+    <div class="opt"><span>(D)</span>3MR²/2</div>
+  </div>
+</div>
+
+<!-- ══════════════════ SECTION 4 ══════════════════ -->
+<div id="s4" class="section-header">
+  <span class="section-num">Section 04 · Q81 – Q110</span>
+  <h2>Composite & Irregular Bodies</h2>
+  <p class="section-desc">Addition of MOIs for combined shapes · Both PAT and PPT required · System of rigid bodies</p>
+</div>
+
+<!-- Q81 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.81</span>
+    <div class="q-text">
+      A system consists of a thin rod (mass M, length L) and a sphere (mass M, radius R) attached at one end of the rod. Find MOI about an axis through the free end of the rod perpendicular to it.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="250" height="80" viewBox="0 0 250 80">
+        <line x1="20" y1="40" x2="160" y2="40" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="190" cy="40" r="28" fill="#1c2a35" stroke="#f07070" stroke-width="2"/>
+        <line x1="20" y1="15" x2="20" y2="65" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="22" y="12" fill="#e8c96d" font-size="9">⊗ Axis</text>
+        <text x="90" y="30" fill="#7eb8f7" font-size="10">Rod M, L</text>
+        <text x="175" y="44" fill="#f07070" font-size="10" text-anchor="middle">M, R</text>
+      </svg>
+      <span class="fig-caption">Fig. 4.1 — Rod + Sphere system</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/3 + 2MR²/5 + M(L+R)²</div>
+    <div class="opt"><span>(B)</span>ML²/3 + M(L+R)²</div>
+    <div class="opt"><span>(C)</span>ML²/3 + 7MR²/5</div>
+    <div class="opt"><span>(D)</span>ML²/3 + 2MR²/5</div>
+  </div>
+</div>
+
+<!-- Q82 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.82</span>
+    <div class="q-text">
+      Two discs of masses M₁ = 2 kg, R₁ = 0.3 m and M₂ = 3 kg, R₂ = 0.2 m are joined coaxially. Find total I about the common axis.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="200" height="110" viewBox="0 0 200 110">
+        <ellipse cx="70" cy="55" rx="55" ry="18" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <ellipse cx="135" cy="55" rx="38" ry="12" fill="#1a2a35" stroke="#7ddbb0" stroke-width="2"/>
+        <line x1="20" y1="55" x2="180" y2="55" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="50" y="48" fill="#7eb8f7" font-size="9" text-anchor="middle">M₁,R₁</text>
+        <text x="140" y="48" fill="#7ddbb0" font-size="9" text-anchor="middle">M₂,R₂</text>
+      </svg>
+      <span class="fig-caption">Fig. 4.2 — Two coaxial discs</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>0.15 kg·m²</div>
+    <div class="opt"><span>(B)</span>0.12 kg·m²</div>
+    <div class="opt"><span>(C)</span>0.09 kg·m²</div>
+    <div class="opt"><span>(D)</span>0.18 kg·m²</div>
+  </div>
+</div>
+
+<!-- Q83 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.83</span>
+    <div class="q-text">A uniform T-shaped lamina is formed from two rectangles: horizontal bar (mass 2m, length 2a, width b) and vertical stem (mass m, length 2b, width a). Find MOI about a horizontal axis through the top of the T. Use PAT and composition.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="170" height="190" viewBox="0 0 170 190">
+        <rect x="10" y="15" width="150" height="35" fill="#1a2a40" stroke="#7eb8f7" stroke-width="2"/>
+        <rect x="65" y="50" width="40" height="120" fill="#1a3520" stroke="#7ddbb0" stroke-width="2"/>
+        <line x1="5" y1="15" x2="165" y2="15" stroke="#f07070" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="165" y="12" fill="#f07070" font-size="9">axis</text>
+        <text x="85" y="37" fill="#7eb8f7" font-size="9" text-anchor="middle">2m, 2a×b</text>
+        <text x="85" y="115" fill="#7ddbb0" font-size="9" text-anchor="middle">m, a×2b</text>
+      </svg>
+      <span class="fig-caption">Fig. 4.3 — T-shaped lamina</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2mb²/12 + m·4b²/3</div>
+    <div class="opt"><span>(B)</span>2mb²/12 + 2mb² + m·4b²/12 + m·4b²</div>
+    <div class="opt"><span>(C)</span>m(b² + 3b²)</div>
+    <div class="opt"><span>(D)</span>Complex; set up integral</div>
+  </div>
+</div>
+
+<!-- Q84 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.84</span>
+    <div class="q-text">A solid sphere of mass M and radius R sits on top of a solid cylinder of mass M, radius R, height h. Find MOI of the combined system about the axis of symmetry.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/2 + 2MR²/5</div>
+    <div class="opt"><span>(B)</span>7MR²/10</div>
+    <div class="opt"><span>(C)</span>MR²/2 + 2MR²/5 = 9MR²/10</div>
+    <div class="opt"><span>(D)</span>MR² + 2MR²/5</div>
+  </div>
+</div>
+
+<!-- Q85 -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.85</span>
+    <div class="q-text">Three identical rods each of mass M and length L are joined to form an equilateral triangle. Find MOI about an axis through one vertex and perpendicular to the plane.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="170" height="155" viewBox="0 0 170 155">
+        <polygon points="85,15 160,140 10,140" fill="none" stroke="#7eb8f7" stroke-width="4" stroke-linejoin="round"/>
+        <circle cx="85" cy="15" r="6" fill="#e8c96d"/>
+        <text x="87" y="12" fill="#e8c96d" font-size="9">⊗ axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 4.5 — Equilateral rod triangle</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²</div>
+    <div class="opt"><span>(B)</span>2ML²/3</div>
+    <div class="opt"><span>(C)</span>3ML²/4</div>
+    <div class="opt"><span>(D)</span>5ML²/4</div>
+  </div>
+</div>
+
+<!-- Q86-110 continued composite -->
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.86</span>
+    <div class="q-text">A dumbbell consists of two spheres (each mass m, radius r) connected by a thin rigid rod (mass M, length L) at their centres. Find MOI about an axis through the CM of the system perpendicular to the rod.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="270" height="70" viewBox="0 0 270 70">
+        <circle cx="35" cy="35" r="28" fill="#1c2a35" stroke="#7eb8f7" stroke-width="2"/>
+        <circle cx="235" cy="35" r="28" fill="#1c2a35" stroke="#7eb8f7" stroke-width="2"/>
+        <line x1="63" y1="35" x2="207" y2="35" stroke="#7ddbb0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="135" y1="10" x2="135" y2="60" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="137" y="8" fill="#e8c96d" font-size="9">⊗ CM axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 4.6 — Dumbbell system</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2(2mr²/5) + 2m(L/2)² + ML²/12</div>
+    <div class="opt"><span>(B)</span>4mr²/5 + m(L+2r)²/2 + ML²/12</div>
+    <div class="opt"><span>(C)</span>2(2mr²/5) + 2m(L/2+r)² + ML²/12</div>
+    <div class="opt"><span>(D)</span>4mr²/5 + mL²/2</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.87</span>
+    <div class="q-text">A solid cylinder (M, R, L) and a ring (m, R) are attached coaxially (ring at one end). Find I of the combined system about an axis perpendicular to the cylinder axis through the far end of the cylinder from the ring.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M(L²/3 + R²/4) + m(R²/2 + L²)</div>
+    <div class="opt"><span>(B)</span>ML²/3 + mL²</div>
+    <div class="opt"><span>(C)</span>M(L²/12 + R²/4) + ML²/4 + mL²</div>
+    <div class="opt"><span>(D)</span>M(R²/2+L²/3) + mL²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.88</span>
+    <div class="q-text">Four thin rods each of mass m and length a are arranged as a square frame. A disc of mass 4m and radius a/2 fills the square at its centre. Find total I about the centre of the square, perpendicular to plane.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>4m(a²/12 + a²/4) + 4m(a²/2)/2 · (a/2)²</div>
+    <div class="opt"><span>(B)</span>4ma²/3 + ma²/2</div>
+    <div class="opt"><span>(C)</span>4m·a²/3 + 4m·(a/2)²/2</div>
+    <div class="opt"><span>(D)</span>Requires careful PAT application</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.89</span>
+    <div class="q-text">Two rings (each mass M, radius R) are arranged perpendicular to each other with a common diameter. Find total I about the common diameter axis.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/2</div>
+    <div class="opt"><span>(B)</span>MR²</div>
+    <div class="opt"><span>(C)</span>MR²/2 + MR² = 3MR²/2</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.90</span>
+    <div class="q-text">A disc of radius 2R and mass 4M has a disc of radius R and mass M placed concentrically on top. Find I of the combined system about the central axis (both discs face-to-face, same axis).</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>4M(2R)²/2 + MR²/2 = 8MR²+MR²/2 = 17MR²/2</div>
+    <div class="opt"><span>(B)</span>9MR²</div>
+    <div class="opt"><span>(C)</span>17MR²/2</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.91</span>
+    <div class="q-text">A uniform wire of mass M is bent into the shape of a regular hexagon of side a. Find MOI about an axis through the centre perpendicular to the plane.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>5Ma²/8</div>
+    <div class="opt"><span>(B)</span>Ma²/2</div>
+    <div class="opt"><span>(C)</span>5Ma²/4</div>
+    <div class="opt"><span>(D)</span>3Ma²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.92</span>
+    <div class="q-text">A <b>H-shaped</b> structure is formed from 5 equal rods each of mass m and length a (two vertical rods of length a, one horizontal rod of length a connecting their midpoints). Find I about a vertical axis through the centre of the horizontal rod.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="140" height="160" viewBox="0 0 140 160">
+        <line x1="30" y1="15" x2="30" y2="145" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <line x1="110" y1="15" x2="110" y2="145" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <line x1="30" y1="80" x2="110" y2="80" stroke="#7ddbb0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="70" y1="10" x2="70" y2="150" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="72" y="8" fill="#e8c96d" font-size="9">axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 4.12 — H-shaped frame</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2ma²/3 + 0 = 2ma²/3</div>
+    <div class="opt"><span>(B)</span>2ma²/12 + 2m(a/2)² = 2ma²/3</div>
+    <div class="opt"><span>(C)</span>ma²/3 + 2ma²/4</div>
+    <div class="opt"><span>(D)</span>5ma²/12</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.93</span>
+    <div class="q-text">A system of 3 concentric rings, radii R, 2R, 3R, masses m, 2m, 3m respectively, all lie in the same plane. Find total I about the central perpendicular axis.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>mR² + 8mR² + 27mR² = 36mR²</div>
+    <div class="opt"><span>(B)</span>6mR²</div>
+    <div class="opt"><span>(C)</span>14mR²</div>
+    <div class="opt"><span>(D)</span>36mR²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.94</span>
+    <div class="q-text">A solid disc (M, R) has a solid cylinder (M, R/2, height h) mounted at its centre on top. Find I of the combined system about the common axis.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/2 + MR²/8 = 5MR²/8</div>
+    <div class="opt"><span>(B)</span>MR²/2 + M(R/2)²/2 = 5MR²/8</div>
+    <div class="opt"><span>(C)</span>3MR²/4</div>
+    <div class="opt"><span>(D)</span>Both A and B</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.95</span>
+    <div class="q-text">Four point masses m are located at (a,0), (0,a), (−a,0), (0,−a). Find I about the z-axis, I about the x-axis, and I about the y-axis. Verify PPT.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_z=4ma²; I_x=2ma²; I_y=2ma²</div>
+    <div class="opt"><span>(B)</span>I_z=2ma²; I_x=ma²; I_y=ma²</div>
+    <div class="opt"><span>(C)</span>I_z=4ma²; I_x=4ma²; I_y=0</div>
+    <div class="opt"><span>(D)</span>I_z=8ma²; I_x=4ma²; I_y=4ma²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.96</span>
+    <div class="q-text">A solid cone (M, R, h) sits with its base on a solid disc (M, R). Both share the common axis. Find total I about the common axis.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/10 + MR²/2</div>
+    <div class="opt"><span>(B)</span>4MR²/5</div>
+    <div class="opt"><span>(C)</span>3MR²/10 + MR²/2 = 8MR²/10</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.97</span>
+    <div class="q-text">A uniform ladder of mass M and length L leans against a wall at 60° to the horizontal. Find MOI about an axis through the bottom end perpendicular to the ladder.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/3</div>
+    <div class="opt"><span>(B)</span>ML²sin²60°/3</div>
+    <div class="opt"><span>(C)</span>ML²/12</div>
+    <div class="opt"><span>(D)</span>ML²cos²60°/3</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.98</span>
+    <div class="q-text">A wheel has a hub of mass M_h and radius r, spokes (negligible mass), and a rim of mass M_r and radius R. Express total I about the axle.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <circle cx="75" cy="75" r="65" fill="none" stroke="#7eb8f7" stroke-width="4"/>
+        <circle cx="75" cy="75" r="18" fill="#1c3020" stroke="#7ddbb0" stroke-width="3"/>
+        <line x1="75" y1="57" x2="75" y2="10" stroke="#8899aa" stroke-width="2"/>
+        <line x1="75" y1="93" x2="75" y2="140" stroke="#8899aa" stroke-width="2"/>
+        <line x1="57" y1="75" x2="10" y2="75" stroke="#8899aa" stroke-width="2"/>
+        <line x1="93" y1="75" x2="140" y2="75" stroke="#8899aa" stroke-width="2"/>
+        <line x1="62" y1="62" x2="21" y2="21" stroke="#8899aa" stroke-width="2"/>
+        <line x1="88" y1="62" x2="129" y2="21" stroke="#8899aa" stroke-width="2"/>
+        <line x1="62" y1="88" x2="21" y2="129" stroke="#8899aa" stroke-width="2"/>
+        <line x1="88" y1="88" x2="129" y2="129" stroke="#8899aa" stroke-width="2"/>
+        <circle cx="75" cy="75" r="5" fill="#e8c96d"/>
+        <text x="77" y="73" fill="#e8c96d" font-size="7">⊗</text>
+      </svg>
+      <span class="fig-caption">Fig. 4.18 — Spoked wheel</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>M_h·r²/2 + M_r·R²</div>
+    <div class="opt"><span>(B)</span>(M_h+M_r)R²/2</div>
+    <div class="opt"><span>(C)</span>M_h·r² + M_r·R²</div>
+    <div class="opt"><span>(D)</span>M_h·r²/2 + M_r·R²/2</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.99</span>
+    <div class="q-text">A thin uniform disc of mass 3M and radius R is lying in the xy-plane. An identical disc is stacked on top concentrically. Find I of the combination about a diameter axis in the plane of the bottom disc.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3MR²/2</div>
+    <div class="opt"><span>(B)</span>3MR²/4</div>
+    <div class="opt"><span>(C)</span>9MR²/4</div>
+    <div class="opt"><span>(D)</span>6MR²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.100</span>
+    <div class="q-text">A solid sphere of radius R is attached to the end of a thin rod of length L (mass M each). Find I about an axis perpendicular to the rod and through the far end of the rod from the sphere, given sphere's CM is at distance (L+R) from the axis.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/3 + 2MR²/5 + M(L+R)²</div>
+    <div class="opt"><span>(B)</span>ML²/3 + 7MR²/5</div>
+    <div class="opt"><span>(C)</span>ML²/3 + 2MR²/5</div>
+    <div class="opt"><span>(D)</span>ML² + 7MR²/5</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.101</span>
+    <div class="q-text">A cube of mass M and side a is made of 6 uniform square plates. Find I about an axis through the centre and perpendicular to one face.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/6</div>
+    <div class="opt"><span>(B)</span>Ma²/3</div>
+    <div class="opt"><span>(C)</span>Ma²/12</div>
+    <div class="opt"><span>(D)</span>Ma²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.102</span>
+    <div class="q-text">A uniform solid cylinder (M, R, L) is cut into two equal halves along its axis (each half is a semicylinder). Find I of one half about the flat face axis (the axis along which the cut was made).</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>MR²/4</div>
+    <div class="opt"><span>(B)</span>MR²/8</div>
+    <div class="opt"><span>(C)</span>MR²/2</div>
+    <div class="opt"><span>(D)</span>3MR²/8</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.103</span>
+    <div class="q-text">A disc of mass M and radius 2R has a smaller disc of mass m and radius R placed on it, eccentrically, with the smaller disc touching the rim of the bigger disc. Find I of the system about the axis through the centre of the bigger disc (perpendicular to the plane).</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2MR² + mR²/2 + mR²</div>
+    <div class="opt"><span>(B)</span>2MR² + 3mR²/2</div>
+    <div class="opt"><span>(C)</span>Both A and B</div>
+    <div class="opt"><span>(D)</span>2MR² + mR²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.104</span>
+    <div class="q-text">A triangular lamina (equilateral, side a, mass 3m) is made of 3 identical rods (mass m each, length a). Find I about the centroidal axis perpendicular to the plane using PAT.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3m·a²/4</div>
+    <div class="opt"><span>(B)</span>m·a²/2</div>
+    <div class="opt"><span>(C)</span>3m(a²/12 + a²/12) = ma²/2</div>
+    <div class="opt"><span>(D)</span>ma²/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.105</span>
+    <div class="q-text">A flywheel consists of a central hub (solid cylinder: M=5 kg, r=0.1 m), 4 identical spokes (each thin rod: m=2 kg, l=0.4 m extending from hub edge to rim), and a rim (ring: M_rim=8 kg, R=0.5 m). Find total I about the axle.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>≈ 2.265 kg·m²</div>
+    <div class="opt"><span>(B)</span>≈ 3.1 kg·m²</div>
+    <div class="opt"><span>(C)</span>≈ 1.8 kg·m²</div>
+    <div class="opt"><span>(D)</span>≈ 2.5 kg·m²</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.106</span>
+    <div class="q-text">A uniform square plate of mass M and side a is rotated 45° about a diagonal. Find I about the diagonal of the plate. Then use PAT to find I about a parallel axis at distance a/√2.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ma²/12, then Ma²/12 + Ma²/2</div>
+    <div class="opt"><span>(B)</span>Ma²/6, then Ma²/6 + Ma²/2</div>
+    <div class="opt"><span>(C)</span>Ma²/12, then 7Ma²/12</div>
+    <div class="opt"><span>(D)</span>Ma²/6, then 2Ma²/3</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.107</span>
+    <div class="q-text">Two identical spheres (mass m, radius r) are connected by a thin rigid rod (mass M, length L). Find I of the system about an axis perpendicular to the rod, passing through the centre of the rod.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ML²/12 + 2(2mr²/5) + 2m(L/2)²</div>
+    <div class="opt"><span>(B)</span>ML²/12 + 2mr² + 2m(L/2)²</div>
+    <div class="opt"><span>(C)</span>ML²/12 + 4mr²/5 + mL²/2</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.108</span>
+    <div class="q-text">A solid sphere of radius R is joined at its surface to a thin hollow cylindrical shell (same mass M, same radius R, length 2R). Find total I of the combination about their common axis.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>2MR²/5 + MR² = 7MR²/5</div>
+    <div class="opt"><span>(B)</span>2MR²/5 + MR²/2</div>
+    <div class="opt"><span>(C)</span>7MR²/5</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.109</span>
+    <div class="q-text">A uniform thin plate (mass 4M, sides 2a×2b) is made of 4 identical square plates (each M, side a). Find I about the corner of the large plate (axis perpendicular to plane).</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>4M(a²+b²)/3 for square</div>
+    <div class="opt"><span>(B)</span>4M·2(a²)/3</div>
+    <div class="opt"><span>(C)</span>16Ma²/3</div>
+    <div class="opt"><span>(D)</span>8Ma²/3</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.110</span>
+    <div class="q-text">A uniform hemispherical shell (mass M, radius R) has its flat face lying in the x-y plane with the dome facing up. Find I about the z-axis (symmetry axis) and I about the x-axis.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_z = 2MR²/3 ; I_x = MR²/3</div>
+    <div class="opt"><span>(B)</span>I_z = MR² ; I_x = MR²/2</div>
+    <div class="opt"><span>(C)</span>I_z = 2MR²/3 ; I_x = MR²/6</div>
+    <div class="opt"><span>(D)</span>I_z = MR²/2 ; I_x = MR²/4</div>
+  </div>
+</div>
+
+<!-- ══════════════════ SECTION 5 ══════════════════ -->
+<div id="s5" class="section-header green">
+  <span class="section-num green">Section 05 · Q111 – Q120</span>
+  <h2>Removal of Mass — Cavities & Holes</h2>
+  <p class="section-desc">I<sub>remaining</sub> = I<sub>whole</sub> − I<sub>removed part</sub> · Negative mass superposition method</p>
+</div>
+
+<!-- Q111 - Main removal problem -->
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.111</span>
+    <div class="q-text">
+      <b>★ Core Removal Problem:</b> A uniform solid disc of mass <b>M</b> and radius <b>2R</b> has a circular hole of radius <b>R</b> drilled at a distance <b>R</b> from the centre. Find the MOI of the remaining body about an axis through the original centre perpendicular to the plane. <span class="tag tag-removal">Removal</span>
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <!-- Original disc -->
+        <circle cx="100" cy="100" r="90" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <!-- Hole (removed disc) -->
+        <circle cx="145" cy="100" r="45" fill="#0d1117" stroke="#f07070" stroke-width="2" stroke-dasharray="6,3"/>
+        <!-- Axis -->
+        <circle cx="100" cy="100" r="5" fill="#e8c96d"/>
+        <line x1="100" y1="5" x2="100" y2="195" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <!-- R label to hole centre -->
+        <line x1="100" y1="100" x2="145" y2="100" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="120" y="95" fill="#7ddbb0" font-size="10">R</text>
+        <!-- 2R label to rim -->
+        <line x1="100" y1="100" x2="10" y2="100" stroke="#8899aa" stroke-width="1.5"/>
+        <text x="50" y="95" fill="#8899aa" font-size="10">2R</text>
+        <!-- Hole R label -->
+        <line x1="145" y1="100" x2="145" y2="55" stroke="#f07070" stroke-width="1.5"/>
+        <text x="147" y="78" fill="#f07070" font-size="10">R</text>
+        <text x="100" y="2" fill="#e8c96d" font-size="9" text-anchor="middle">⊗ axis</text>
+        <text x="140" y="185" fill="#f07070" font-size="10">Hole (removed)</text>
+        <text x="30" y="60" fill="#7eb8f7" font-size="10">Original disc 2R</text>
+      </svg>
+      <span class="fig-caption">Fig. 5.1 — Disc with off-centre hole</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3M(4R²)/2 − (M/4)(R²/2 + R²) = 13MR²/4</div>
+    <div class="opt"><span>(B)</span>2MR²</div>
+    <div class="opt"><span>(C)</span>13MR²/4</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<!-- Q112-120 more removal -->
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.112</span>
+    <div class="q-text">A solid sphere of mass M and radius 2R has a spherical cavity of radius R carved out from it. The centre of the cavity is at distance R from the centre of the sphere. Find MOI of the remaining body about the axis through the original centre. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="180" height="180" viewBox="0 0 180 180">
+        <circle cx="90" cy="90" r="80" fill="#1a2a35" stroke="#7eb8f7" stroke-width="2"/>
+        <circle cx="130" cy="90" r="40" fill="#0d1117" stroke="#f07070" stroke-width="2" stroke-dasharray="5,3"/>
+        <circle cx="90" cy="90" r="5" fill="#e8c96d"/>
+        <line x1="90" y1="5" x2="90" y2="175" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="90" y1="90" x2="130" y2="90" stroke="#7ddbb0" stroke-width="1.5"/>
+        <text x="108" y="85" fill="#7ddbb0" font-size="10">R</text>
+        <text x="92" y="2" fill="#e8c96d" font-size="9">axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 5.2 — Sphere with cavity</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I = I_whole − I_removed = 2M_whole(2R)²/5 − [2M_cav·R²/5 + M_cav·R²]</div>
+    <div class="opt"><span>(B)</span>176MR²/175</div>
+    <div class="opt"><span>(C)</span>Both A and B lead to ≈ 1.006 MR²</div>
+    <div class="opt"><span>(D)</span>MR²</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.113</span>
+    <div class="q-text">A rectangular lamina of mass 4M (sides 2a × 2b) has a square portion of mass M (side a × a) removed from one corner. Find I of the remaining portion about the centre of the original rectangle (axis perpendicular to plane). <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="200" height="150" viewBox="0 0 200 150">
+        <rect x="10" y="15" width="180" height="120" fill="#1a2540" stroke="#7eb8f7" stroke-width="2"/>
+        <rect x="10" y="15" width="90" height="60" fill="#0d1117" stroke="#f07070" stroke-width="2" stroke-dasharray="5,3"/>
+        <circle cx="100" cy="75" r="5" fill="#e8c96d"/>
+        <text x="102" y="73" fill="#e8c96d" font-size="8">CM</text>
+        <text x="50" y="48" fill="#f07070" font-size="10" text-anchor="middle">Removed</text>
+        <text x="145" y="95" fill="#7eb8f7" font-size="9" text-anchor="middle">Remaining</text>
+      </svg>
+      <span class="fig-caption">Fig. 5.3 — Rect. lamina with corner removed</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_whole − I_removed piece (using PAT)</div>
+    <div class="opt"><span>(B)</span>4M(4a²+4b²)/12 − [M(a²+b²)/12 + M(d²)] where d is distance of removed piece CM from original CM</div>
+    <div class="opt"><span>(C)</span>Both A and B</div>
+    <div class="opt"><span>(D)</span>Cannot be determined</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.114</span>
+    <div class="q-text">A solid disc of radius 3R and mass 9M has three holes of radius R drilled symmetrically at distance 2R from centre. Find I about the central axis perpendicular to the disc. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>9M(9R²)/2 − 3[M(R²/2+4R²)] = 81MR²/2 − 27MR²/2 = 27MR²</div>
+    <div class="opt"><span>(B)</span>27MR²</div>
+    <div class="opt"><span>(C)</span>Both A and B</div>
+    <div class="opt"><span>(D)</span>24MR²</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.115</span>
+    <div class="q-text">A uniform solid cylinder of mass M, radius R, and length L has a coaxial cylindrical bore of radius R/2 drilled through it. Find I about the cylinder's own axis. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>5MR²/8 · (4/3)</div>
+    <div class="opt"><span>(B)</span>3MR²/8</div>
+    <div class="opt"><span>(C)</span>Requires density approach; I = (3/8)MR² · (4/3) = MR²/2</div>
+    <div class="opt"><span>(D)</span>Both B and density method give 3MR²/8</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.116</span>
+    <div class="q-text">A thin disc of mass 4M and radius 2R has a disc of radius R and mass M removed from it concentrically. Express I of the remaining annular disc about the central perpendicular axis in terms of M and R. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>4M·(2R)²/2 − M·R²/2 = 8MR² − MR²/2 = 15MR²/2</div>
+    <div class="opt"><span>(B)</span>8MR²</div>
+    <div class="opt"><span>(C)</span>15MR²/2</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.117</span>
+    <div class="q-text">A square lamina of side 2a has a square of side a removed from its centre. The original mass is 4M. Find I about an axis through the original centre perpendicular to the plane. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>4M·2(4a²)/12 − M·2a²/12 = 8Ma²/3 − Ma²/6 = 5Ma²/2</div>
+    <div class="opt"><span>(B)</span>2Ma²</div>
+    <div class="opt"><span>(C)</span>5Ma²/2</div>
+    <div class="opt"><span>(D)</span>Both A and C</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.118</span>
+    <div class="q-text">A solid hemisphere of radius 2R and mass 8M has a hemispherical cavity of radius R removed concentrically from the flat face. Find I about the axis of symmetry. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>8M·2(2R)²/5 − M·2R²/5</div>
+    <div class="opt"><span>(B)</span>62MR²/5</div>
+    <div class="opt"><span>(C)</span>Both A and B</div>
+    <div class="opt"><span>(D)</span>58MR²/5</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.119</span>
+    <div class="q-text">A rod of length 3L and mass 3M has a central portion of length L and mass M removed. The remaining two pieces are joined at the cut. Find I of the new body about the centre of the original rod. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>3M(3L)²/12 − M·L²/12 = 9ML²/4 − ML²/12 = 26ML²/12</div>
+    <div class="opt"><span>(B)</span>13ML²/6</div>
+    <div class="opt"><span>(C)</span>Both A and B</div>
+    <div class="opt"><span>(D)</span>3ML²/2</div>
+  </div>
+</div>
+
+<div class="q-card removal">
+  <div class="q-header">
+    <span class="q-num green">Q.120</span>
+    <div class="q-text">A uniform lamina in the shape of a full circle of radius 2R has a semicircular portion of radius R removed from one side (the diameter of the removed semicircle coincides with a diameter of the full circle). Find I about the axis through the full circle's centre and perpendicular to the plane. <span class="tag tag-removal">Removal</span></div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>4M(2R)²/2 − (M/2)(R²/2) (treating the removed part's MOI separately)</div>
+    <div class="opt"><span>(B)</span>8MR² − MR²/4 = 31MR²/4</div>
+    <div class="opt"><span>(C)</span>Requires careful mass-ratio calculation</div>
+    <div class="opt"><span>(D)</span>35MR²/4</div>
+  </div>
+</div>
+
+<!-- ══════════════════ SECTION 6 — JEE ADVANCED TOUGH ══════════════════ -->
+<div id="s6" class="section-header red">
+  <span class="section-num red">Section 06 · Q121 – Q140</span>
+  <h2>JEE Advanced — 20 Tough Problems</h2>
+  <p class="section-desc">★★★ Highest difficulty · Multi-concept · Requires insight and careful setup · JEE Advanced standard</p>
+</div>
+
+<!-- Q121 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.121</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A non-uniform rod of length L has linear mass density <b>λ(x) = λ₀(1 + x/L)</b>, where x is measured from one end. Find the MOI about an axis through the end (x = 0) perpendicular to the rod. Also find the position of the CM.
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="270" height="70" viewBox="0 0 270 70">
+        <defs>
+          <linearGradient id="rodgrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#7eb8f7" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#7eb8f7" stop-opacity="1"/>
+          </linearGradient>
+        </defs>
+        <rect x="20" y="25" width="230" height="20" fill="url(#rodgrad)" rx="3"/>
+        <line x1="20" y1="10" x2="20" y2="55" stroke="#e8c96d" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="22" y="8" fill="#e8c96d" font-size="9">⊗ x=0</text>
+        <text x="240" y="20" fill="#7eb8f7" font-size="9">x=L (denser)</text>
+        <text x="110" y="20" fill="#8899aa" font-size="9">λ(x)=λ₀(1+x/L)</text>
+        <text x="110" y="60" fill="#8899aa" font-size="9">increasing density →</text>
+      </svg>
+      <span class="fig-caption">Fig. 6.1 — Non-uniform rod</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I = λ₀L³(1/3 + 1/4) = 7λ₀L³/12; x_cm = 5L/9</div>
+    <div class="opt"><span>(B)</span>I = 7λ₀L³/12; x_cm = 7L/12</div>
+    <div class="opt"><span>(C)</span>I = 5λ₀L³/12; x_cm = 5L/9</div>
+    <div class="opt"><span>(D)</span>I = λ₀L³/2; x_cm = L/2</div>
+  </div>
+</div>
+
+<!-- Q122 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.122</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A uniform disc of mass M and radius R is attached to a spring of spring constant k at the rim. The disc can roll without slipping on a horizontal surface. Find the effective moment of inertia seen from the spring's perspective in terms of I_cm and M (for the purpose of calculating the angular frequency of oscillation).
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω = √(2k/3M)</div>
+    <div class="opt"><span>(B)</span>ω = √(k/M)</div>
+    <div class="opt"><span>(C)</span>ω = √(2k/M)</div>
+    <div class="opt"><span>(D)</span>ω = √(k/3M)</div>
+  </div>
+</div>
+
+<!-- Q123 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.123</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A solid sphere of mass M and radius R rolls without slipping down a rough incline of angle θ. An identical sphere rolls on a smooth incline. Compare the accelerations. Then, if two spheres of the same mass but radii R and 2R are allowed to roll, compare their accelerations. Which reaches the bottom first?
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Rough: a = 5g sinθ/7; Smooth: a = g sinθ; Both same size → same a; same time</div>
+    <div class="opt"><span>(B)</span>Rough: 5g sinθ/7; Smooth: g sinθ; Both sizes → same a (independent of R)</div>
+    <div class="opt"><span>(C)</span>Rough: 2g sinθ/5; Smooth: g sinθ; Different radii → different a</div>
+    <div class="opt"><span>(D)</span>All spheres have same a = 5g sinθ/7 on rough; depends on R on smooth</div>
+  </div>
+</div>
+
+<!-- Q124 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.124</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A uniform thin rod of mass M and length L is held horizontally and then released. At the instant it makes an angle θ with the horizontal, find: (a) the angular velocity ω, (b) the angular acceleration α, (c) the reaction force at the pivot. (pivot at one end)
+    </div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="200" height="160" viewBox="0 0 200 160">
+        <circle cx="30" cy="30" r="7" fill="#e8c96d"/>
+        <line x1="30" y1="30" x2="170" y2="120" stroke="#7eb8f7" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 30 30 A 40 40 0 0 1 70 30" fill="none" stroke="#7ddbb0" stroke-width="2"/>
+        <text x="72" y="28" fill="#7ddbb0" font-size="10">θ</text>
+        <text x="25" y="18" fill="#e8c96d" font-size="9">pivot</text>
+        <line x1="30" y1="30" x2="190" y2="30" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="105" y="60" fill="#7eb8f7" font-size="10">L, M</text>
+        <text x="130" y="100" fill="#8899aa" font-size="10">g↓</text>
+        <line x1="140" y1="90" x2="140" y2="110" stroke="#8899aa" stroke-width="1.5" marker-end="url(#garr)"/>
+        <defs>
+          <marker id="garr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#8899aa"/>
+          </marker>
+        </defs>
+      </svg>
+      <span class="fig-caption">Fig. 6.4 — Pivoted rod at angle θ</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω²=3g cosθ/L ; α=3g sinθ/2L ; R_pivot complex</div>
+    <div class="opt"><span>(B)</span>ω²=3g sinθ/L ; α=3g cosθ/2L ; R=(M/4)√(9cos²θ+1)</div>
+    <div class="opt"><span>(C)</span>ω²=3g sinθ/L ; α=3g cosθ/2L ; R at pivot uses Newton's law</div>
+    <div class="opt"><span>(D)</span>ω=√(g sinθ/L) ; α=3g/2L</div>
+  </div>
+</div>
+
+<!-- Q125 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.125</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A disc of mass M and radius R can rotate freely about a fixed vertical axis through its centre. A particle of mass m starts from the rim and moves to the centre along a groove in the disc. If the initial angular velocity is ω₀, find the final angular velocity when the particle reaches the centre. Use conservation of angular momentum.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω_f = ω₀(MR²/2 + mR²)/(MR²/2)</div>
+    <div class="opt"><span>(B)</span>ω_f = ω₀(MR² + 2mR²)/MR²</div>
+    <div class="opt"><span>(C)</span>ω_f = ω₀ · (M + 2m)/M</div>
+    <div class="opt"><span>(D)</span>ω_f = ω₀ · (M/2 + m)/(M/2)</div>
+  </div>
+</div>
+
+<!-- Q126 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.126</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A uniform cylinder of mass M and radius R rolls without slipping on a plank of mass M which slides on a frictionless floor. A horizontal force F is applied on the cylinder's axis. Find: (a) the acceleration of the cylinder axis, (b) the acceleration of the plank, (c) the friction force between cylinder and plank.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>a_cyl = 3F/4M ; a_plank = F/4M ; f = F/4</div>
+    <div class="opt"><span>(B)</span>a_cyl = 2F/3M ; a_plank = F/3M ; f = F/3</div>
+    <div class="opt"><span>(C)</span>a_cyl = F/2M ; a_plank = F/2M ; f = 0</div>
+    <div class="opt"><span>(D)</span>a_cyl = 4F/3M ; a_plank = 2F/3M ; f = F/3</div>
+  </div>
+</div>
+
+<!-- Q127 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.127</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      The moment of inertia of a non-uniform disc of mass M and radius R where the surface density σ(r) = σ₀(1 − r/R) varies radially. Find I about the central axis. [Hint: Integrate σ(r)·2πr·r²·dr from 0 to R and find M first.]
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I = MR²/5</div>
+    <div class="opt"><span>(B)</span>I = MR²/6</div>
+    <div class="opt"><span>(C)</span>I = MR²/4</div>
+    <div class="opt"><span>(D)</span>I = MR²/3</div>
+  </div>
+</div>
+
+<!-- Q128 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.128</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A ring of mass M and radius R is placed on top of a fixed sphere of radius R. The ring slides off without friction. At what angle from the vertical does the ring leave the sphere? Use energy methods and MOI of a ring about its CM vs about an axis through the contact point.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>cos θ = 2/3</div>
+    <div class="opt"><span>(B)</span>cos θ = 1/2</div>
+    <div class="opt"><span>(C)</span>cos θ = 1/√2</div>
+    <div class="opt"><span>(D)</span>cos θ = 3/4</div>
+  </div>
+</div>
+
+<!-- Q129 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.129</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A long rod of mass M and length L stands upright (vertical) and falls from rest. The bottom end is on a frictionless surface. As the rod falls, find the velocity of the CM when the rod becomes horizontal. Does the bottom end leave the surface? If so, at what angle?
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>v_cm = √(3gL/4) ; leaves at cos θ = 2/3 from vertical</div>
+    <div class="opt"><span>(B)</span>v_cm = √(gL/2) ; bottom never leaves surface</div>
+    <div class="opt"><span>(C)</span>v_cm = √(3gL/2) ; leaves at cos θ = 1/3</div>
+    <div class="opt"><span>(D)</span>v_cm = √(gL/3) ; leaves at cos θ = 2/3</div>
+  </div>
+</div>
+
+<!-- Q130 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.130</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A uniform solid sphere (M, R) is placed inside a hollow sphere (mass M, radius 3R). The inner sphere rolls without slipping inside the outer sphere which is fixed. Find the angular frequency of small oscillations of the inner sphere.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω = √(5g/14R)</div>
+    <div class="opt"><span>(B)</span>ω = √(g/2R)</div>
+    <div class="opt"><span>(C)</span>ω = √(5g/7R)</div>
+    <div class="opt"><span>(D)</span>ω = √(5g/2R)</div>
+  </div>
+</div>
+
+<!-- Q131 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.131</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A thin uniform disc of mass M and radius R lies in the xy-plane. A uniform rod of mass M and length 2R lies along the x-axis as a diameter. They are rigidly joined. Find I of the combined system about the z-axis and about the y-axis. Confirm by summing using PAT and PPT.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_z = MR²/2 + MR²/3 ; I_y = MR²/4 + 0</div>
+    <div class="opt"><span>(B)</span>I_z = MR²/2 + MR²/3 = 5MR²/6 ; I_y = MR²/4</div>
+    <div class="opt"><span>(C)</span>I_z = 5MR²/6 ; I_y = MR²/3</div>
+    <div class="opt"><span>(D)</span>I_z = 5MR²/6 ; I_y = MR²/4 (disc only rotates in yz-plane about y)</div>
+  </div>
+</div>
+
+<!-- Q132 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.132</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A <b>physical pendulum</b> consists of a disc (mass M, radius R) attached at its rim to a pivot. A bob of mass m hangs from a string of length L attached to the bottom of the disc. Find the effective MOI about the pivot for small oscillations, and hence the time period.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I_eff = 3MR²/2 + m(2R+L)² ; T = 2π√(I_eff / (Mg·R + mg(2R+L)))</div>
+    <div class="opt"><span>(B)</span>I_eff = MR²/2 + m(2R)² ; T = 2π√(I_eff/MgR)</div>
+    <div class="opt"><span>(C)</span>I_eff = 3MR²/2 ; T = 2π√(3R/2g)</div>
+    <div class="opt"><span>(D)</span>Requires small angle approx. for the bob too</div>
+  </div>
+</div>
+
+<!-- Q133 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.133</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      Two discs (masses M and 2M, same radius R) are rotating about the same axis with angular velocities ω and −2ω (opposite directions). They are brought in contact and eventually reach common ω_f. Find ω_f and the fraction of kinetic energy lost.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω_f = −ω ; KE lost = 2MR²ω²</div>
+    <div class="opt"><span>(B)</span>ω_f = −ω ; KE lost fraction = 2/3</div>
+    <div class="opt"><span>(C)</span>ω_f = −ω ; fraction lost = 2/3 ; KE lost = (2/3)·(initial KE)</div>
+    <div class="opt"><span>(D)</span>Both B and C</div>
+  </div>
+</div>
+
+<!-- Q134 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.134</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A solid sphere rolls without slipping and collides with a wall elastically. After bouncing back, does the sphere roll forward or backward? If rolling backward, does it eventually roll forward again? Analyse using MOI and angular momentum concepts.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Linear velocity reverses; spin doesn't; so backward rolling then friction creates pure roll forward</div>
+    <div class="opt"><span>(B)</span>Both v and ω reverse; sphere rolls backward forever</div>
+    <div class="opt"><span>(C)</span>Sphere slides backward; friction reverses ω; eventually pure backward roll</div>
+    <div class="opt"><span>(D)</span>The sphere stops and then rolls forward</div>
+  </div>
+</div>
+
+<!-- Q135 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.135</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A uniform disc of mass M, radius R is kept on a horizontal surface. A bullet of mass m traveling horizontally hits the disc at its rim tangentially and embeds in it. The disc initially at rest can rotate about its vertical axis through the centre. Find ω after impact and the fraction of KE retained.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω = 2mv/(MR+2mR) ; KE fraction = m/(M/2+m)</div>
+    <div class="opt"><span>(B)</span>ω = mvR/(MR²/2 + mR²) ; KE retained fraction = m/(M/2+m)</div>
+    <div class="opt"><span>(C)</span>ω = 2mv/((M+2m)R) ; KE retained = 2m/(M+2m)</div>
+    <div class="opt"><span>(D)</span>Both B and C are equivalent</div>
+  </div>
+</div>
+
+<!-- Q136 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.136</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A uniform rod of mass M and length L is pivoted at the centre. A ball of clay of mass m falls vertically with speed v and sticks to one end. Find: (a) the angular velocity of the rod after impact, (b) the maximum angle the rod swings to, (c) the impulse at the pivot during impact.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω = 6mv/((M+3m)L) ; not straightforward for angle; impulse = mv − m·v_cm</div>
+    <div class="opt"><span>(B)</span>ω = mv(L/2)/(ML²/12 + m(L/2)²) ; angle from energy; impulse from Newton</div>
+    <div class="opt"><span>(C)</span>ω = 6mv/((M+12m)L) ; 0 angle; no impulse</div>
+    <div class="opt"><span>(D)</span>ω depends on pivot friction; not calculable</div>
+  </div>
+</div>
+
+<!-- Q137 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.137</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A rigid body has the MOI tensor I_xx = 5, I_yy = 3, I_zz = 4 (all in kg·m²) about principal axes through CM. It rotates with ω = (2î + 3ĵ + k̂) rad/s. Find the angular momentum vector and kinetic energy of rotation.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>L = (10î + 9ĵ + 4k̂) kg·m²/s ; KE = 18.5 J</div>
+    <div class="opt"><span>(B)</span>L = (10î + 6ĵ + 4k̂) kg·m²/s ; KE = 18.5 J</div>
+    <div class="opt"><span>(C)</span>L = (5î + 9ĵ + 4k̂) kg·m²/s ; KE = 25 J</div>
+    <div class="opt"><span>(D)</span>L = (10î + 9ĵ + 4k̂) kg·m²/s ; KE = 37 J</div>
+  </div>
+</div>
+
+<!-- Q138 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.138</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A uniform solid cylinder (mass M, radius R, height h) can roll without slipping on a concave cylindrical surface of radius 3R. Find the period of small oscillations. [Hint: Effective radius = 3R − R = 2R; use I about contact axis = 3MR²/2]
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>T = 2π√(3R/g)</div>
+    <div class="opt"><span>(B)</span>T = 2π√(3R/2g)</div>
+    <div class="opt"><span>(C)</span>T = 2π√(4R/g)</div>
+    <div class="opt"><span>(D)</span>T = 2π√(2R/g)</div>
+  </div>
+</div>
+
+<!-- Q139 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.139</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A thin uniform disc of mass M and radius R has its plane in the vertical plane. It is pivoted at a point on its rim. A small particle of mass m is attached to the lowest point of the rim. For what value of m will the system have the same time period as a simple pendulum of length R?
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>m = M/2</div>
+    <div class="opt"><span>(B)</span>m = 3M/2</div>
+    <div class="opt"><span>(C)</span>m = M</div>
+    <div class="opt"><span>(D)</span>m = 2M</div>
+  </div>
+</div>
+
+<!-- Q140 -->
+<div class="q-card hard">
+  <div class="q-header">
+    <span class="q-num hard">Q.140</span>
+    <div class="q-text">
+      <span class="tag tag-adv">★★★ JEE Adv.</span><br/><br/>
+      A pulley (solid disc, mass M, radius R) is mounted on a frictionless axle. Two blocks of mass m₁ and m₂ (m₁ &gt; m₂) hang from a light string over the pulley. Find the acceleration of the blocks and tension in each side of the string. How would the answer differ for a massless pulley? Express all in terms of M, m₁, m₂, R, g.
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>a = (m₁−m₂)g/(m₁+m₂+M/2) ; T₁≠T₂ (T difference drives pulley)</div>
+    <div class="opt"><span>(B)</span>a = (m₁−m₂)g/(m₁+m₂) ; T₁=T₂ (massless pulley case)</div>
+    <div class="opt"><span>(C)</span>a = (m₁−m₂)g/(m₁+m₂+M) ; T₁≠T₂</div>
+    <div class="opt"><span>(D)</span>Both A and B with massive/massless distinction</div>
+  </div>
+</div>
+
+<!-- ══════════════════ SECTION 7 ══════════════════ -->
+<div id="s7" class="section-header">
+  <span class="section-num">Section 07 · Q141 – Q150</span>
+  <h2>Application & Mixed Problems</h2>
+  <p class="section-desc">Rolling, physical pendula, angular momentum, energy — synthesising all MOI concepts</p>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.141</span>
+    <div class="q-text">A solid cylinder of mass M and radius R rolls without slipping down an inclined plane of angle θ and height h. Find the speed at the bottom using energy methods. Compare with a disc and a hollow cylinder.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>v_cyl = √(4gh/3) ; v_disc = √(4gh/3) ; v_hollow = √(gh)</div>
+    <div class="opt"><span>(B)</span>v_cyl = √(4gh/3) ; v_disc = same ; v_hollow = √(gh)</div>
+    <div class="opt"><span>(C)</span>All have same speed √(2gh)</div>
+    <div class="opt"><span>(D)</span>v_cyl &gt; v_disc &gt; v_hollow</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.142</span>
+    <div class="q-text">A uniform disc of mass M and radius R is mounted on a frictionless horizontal axis through its centre. A string is wound round the disc and a mass m is attached to it. Find the acceleration of the mass m.</div>
+  </div>
+  <div class="fig-wrap">
+    <div class="fig-box">
+      <svg width="140" height="160" viewBox="0 0 140 160">
+        <ellipse cx="70" cy="50" rx="50" ry="16" fill="#1c3555" stroke="#7eb8f7" stroke-width="2"/>
+        <rect x="20" y="34" width="100" height="32" fill="#1a2a40" stroke="none"/>
+        <ellipse cx="70" cy="66" rx="50" ry="16" fill="#1c3555" stroke="#7eb8f7" stroke-width="1.5"/>
+        <line x1="70" y1="66" x2="70" y2="140" stroke="#7ddbb0" stroke-width="2"/>
+        <rect x="55" y="135" width="30" height="20" fill="#1c3020" stroke="#7ddbb0" stroke-width="1.5" rx="2"/>
+        <text x="70" y="148" fill="#7ddbb0" font-size="9" text-anchor="middle">m</text>
+        <line x1="70" y1="10" x2="70" y2="100" stroke="#e8c96d" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="72" y="8" fill="#e8c96d" font-size="9">axis</text>
+      </svg>
+      <span class="fig-caption">Fig. 7.2 — String + disc system</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>a = 2mg/(2m+M)</div>
+    <div class="opt"><span>(B)</span>a = mg/(m+M/2)</div>
+    <div class="opt"><span>(C)</span>a = 2mg/(M+2m)</div>
+    <div class="opt"><span>(D)</span>All three are equivalent</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.143</span>
+    <div class="q-text">Radius of gyration of a hollow cylinder about its axis equals R. A solid cylinder of same M and R has k = R/√2. Verify this and find which body has greater KE for same ω.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Hollow has greater KE for same ω</div>
+    <div class="opt"><span>(B)</span>Solid has greater KE for same ω</div>
+    <div class="opt"><span>(C)</span>Both have same KE</div>
+    <div class="opt"><span>(D)</span>Depends on the radius of gyration comparison</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.144</span>
+    <div class="q-text">A solid sphere of mass M and radius R is given an angular velocity ω about a horizontal axis and placed on a rough horizontal surface (coefficient μ). Find the time taken for pure rolling to commence and the distance covered in that time.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>t = 2Rω/7μg ; s = 12R²ω²/49μg</div>
+    <div class="opt"><span>(B)</span>t = Rω/5μg ; s = R²ω²/5μg</div>
+    <div class="opt"><span>(C)</span>t = 2Rω/5μg ; s = 2R²ω²/25μg</div>
+    <div class="opt"><span>(D)</span>t = 2Rω/7μg and s = 12R²ω²/49μg</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.145</span>
+    <div class="q-text">A disc of mass M and radius R rotating at angular velocity ω is placed on a rough floor. Find: (a) the time for it to stop, (b) the total angle rotated. (Assume uniform μ between disc and floor.)</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>t = 3ωR/4μg ; θ = 3ω²R/8μg</div>
+    <div class="opt"><span>(B)</span>t = 3Rω/4μg ; θ_total = 3R²ω²/8μgR</div>
+    <div class="opt"><span>(C)</span>Both equivalent; t = 3ωR/4μg</div>
+    <div class="opt"><span>(D)</span>t = ωR/μg ; θ = ω²R/2μg</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.146</span>
+    <div class="q-text">Moment of inertia of Earth assuming it is a uniform solid sphere of mass 6×10²⁴ kg and radius 6.4×10⁶ m. Find I. Also find the angular momentum of Earth about its own spin axis. (T = 24 h)</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>I ≈ 9.8×10³⁷ kg·m² ; L ≈ 7.1×10³³ kg·m²/s</div>
+    <div class="opt"><span>(B)</span>I ≈ 7.5×10³⁷ kg·m² ; L ≈ 5.4×10³³ kg·m²/s</div>
+    <div class="opt"><span>(C)</span>I ≈ 9.8×10³⁷ kg·m² ; L ≈ 5.4×10³⁴ kg·m²/s</div>
+    <div class="opt"><span>(D)</span>I ≈ 4.5×10³⁷ kg·m² ; L ≈ 3.3×10³³ kg·m²/s</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.147</span>
+    <div class="q-text">A gyroscope consists of a disc (M = 0.5 kg, R = 0.1 m) spinning at 1000 rpm. The disc's CM is at 0.2 m from the pivot. Find the precession frequency of the gyroscope.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Ω = Mgr/Iω ≈ 2.98 rad/s</div>
+    <div class="opt"><span>(B)</span>Ω ≈ 1.5 rad/s</div>
+    <div class="opt"><span>(C)</span>Ω ≈ 6 rad/s</div>
+    <div class="opt"><span>(D)</span>Ω ≈ 0.5 rad/s</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.148</span>
+    <div class="q-text">A skater spinning at 5 rad/s with arms extended (I = 4 kg·m²) pulls arms in (I = 1.5 kg·m²). Find new ω and the ratio of final to initial KE. Where does the extra energy come from?</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>ω_f = 20/3 rad/s ; KE ratio = 8/3 ; from muscular work</div>
+    <div class="opt"><span>(B)</span>ω_f ≈ 13.3 rad/s ; KE_f/KE_i = 8/3</div>
+    <div class="opt"><span>(C)</span>Both A and B</div>
+    <div class="opt"><span>(D)</span>ω_f = 15 rad/s ; KE ratio = 3</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.149</span>
+    <div class="q-text">A uniform beam (M, L) is supported at two points x₁ and x₂ from one end. Using moments and the concept of MOI, derive the conditions for the beam to be in rotational equilibrium for arbitrary load distributions.</div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>Net torque about any point = 0 ; Net force = 0</div>
+    <div class="opt"><span>(B)</span>Net torque about CM = 0 only</div>
+    <div class="opt"><span>(C)</span>Net I·α = 0 implies constant ω ≠ 0</div>
+    <div class="opt"><span>(D)</span>Equilibrium only when supports are at L/4 and 3L/4</div>
+  </div>
+</div>
+
+<div class="q-card">
+  <div class="q-header">
+    <span class="q-num">Q.150</span>
+    <div class="q-text">
+      <b>★ Grand Synthesis Problem:</b> A solid sphere (M, R) rolls without slipping up a rough incline (θ = 30°) with initial speed v₀. It then rolls back down, and at the bottom collides with a ring (mass M, radius R) initially at rest. The collision is such that the sphere stops and the ring starts rolling. Find: (a) the height reached by the sphere, (b) whether the collision is possible as described (check momentum and energy), (c) if the ring rolls without slipping, find its speed. <span class="tag tag-adv">★★★ Synthesis</span>
+    </div>
+  </div>
+  <div class="options">
+    <div class="opt"><span>(A)</span>h = 7v₀²/10g ; collision violates angular momentum unless slipping allowed ; v_ring = v₀/√2</div>
+    <div class="opt"><span>(B)</span>h = 7v₀²/10g sin30° ; check: momentum 5Mv₀/7 → ring ; v_ring = 5v₀/14</div>
+    <div class="opt"><span>(C)</span>h = 7v₀²/10g ; full energy transfer impossible ; v_ring = v₀√(5/7)</div>
+    <div class="opt"><span>(D)</span>h = v₀²/2g sin30° ; v_ring=v₀ ; energy conserved</div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<div style="margin-top:60px;padding:32px;background:var(--surface);border-radius:10px;border:1px solid var(--border);text-align:center;">
+  <p style="font-family:'Playfair Display',serif;font-size:20px;color:var(--heading);margin-bottom:12px;">— End of Assignment —</p>
+  <p style="color:var(--muted);font-size:13px;font-style:italic;">150 Questions · Sections 1–7 · PAT · PPT · Composite Bodies · Removal of Mass · JEE Advanced</p>
+  <div style="margin-top:20px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap;">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#1e2d20;color:#7ddbb0;padding:4px 12px;border-radius:3px;">PAT = Parallel Axis Theorem</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#151e3a;color:#7eb8f7;padding:4px 12px;border-radius:3px;">PPT = Perpendicular Axis Theorem</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#2a1a30;color:#c07fe8;padding:4px 12px;border-radius:3px;">★★★ = JEE Advanced Level</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#1a2a25;color:#6ee7c0;padding:4px 12px;border-radius:3px;">Removal = Cavity/Hole Method</span>
+  </div>
+</div>
+
+</div><!-- /wrapper -->
+</body>
+</html>
